@@ -16,3 +16,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 print('test')
 ```
+```{r}
+data = read.csv("IDCJAC0009_009225_1800_Data.csv")
+```
+
+```{r}
+head(data)
+```
+
+
