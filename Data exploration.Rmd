@@ -52,6 +52,34 @@ state <- function(x){
 weather_data$state <- state(weather_data$Rainfall.amount..millimetres.)
 ```
 
+```{r}
+train_data <- subset(weather_data, Year >= 2010)
+library(ggplot2)
+library(RColorBrewer)
+# some plots of rainfall data grouped by year and month
+
+ggplot(train_data, aes(x = factor(Month), y = train_data$Rainfall.amount..millimetres., fill = factor(Year))) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_brewer(palette = "Paired") + 
+  xlab("Month")+
+  ylab("Rainfall (mm)")+
+  labs(fill = "Year")+
+  ggtitle("Rainfall of each month. Divided into Years")
+
+ggplot(train_data, aes(x = factor(Year), y = train_data$Rainfall.amount..millimetres., fill = factor(Month))) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_brewer(palette = "Paired") + 
+  xlab("Year")+
+  ylab("Rainfall (mm)")+
+  labs(fill = "Month")+
+  ggtitle("Rainfall of each Year. Divided into Months")
+```
+```{r}
+table(train_data$Month, train_data$Year)
+```
+
+
+
 
 
 
