@@ -11,3 +11,50 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## data exploration
 
+<<<<<<< HEAD
+=======
+
+```{r}
+print('test')
+```
+```{r}
+data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
+weather_data <- data
+weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetres.) == FALSE),]
+```
+
+```{r}
+range(weather_data$Year)
+unique(weather_data$Bureau.of.Meteorology.station.number)
+unique(weather_data$Product.code)
+```
+```{r}
+table(weather_data$Year, weather_data$Quality)
+```
+
+```{r}
+weather_data$date <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-"))
+```
+
+```{r}
+state <- function(x){
+  stateList <- c()
+  for(ii in 1:length(x)){
+    if(x[ii] < 1){
+      stateList <- c(stateList, "dry")
+    }
+    if(x[ii] >= 1){
+      stateList <- c(stateList, "wet")
+    }
+  }
+  return(stateList)
+}
+weather_data$state <- state(weather_data$Rainfall.amount..millimetres.)
+```
+
+
+
+
+
+
+>>>>>>> 08d496c3257b9528ea58334eac844593a9aceed2
