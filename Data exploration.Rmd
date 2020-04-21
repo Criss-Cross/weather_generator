@@ -53,6 +53,32 @@ weather_data$state <- state(weather_data$Rainfall.amount..millimetres.)
 ```
 
 ```{r}
+transitionState <- function(x){
+  transitionStateList <- c('') #can't find transition state of first observation
+  for(i in 2:length(x)){
+    if(x[i] == "dry"){
+      if (x[i-1] == "dry"){
+        transitionStateList <- c(transitionStateList, "DryToDry")
+      }
+      else {
+        transitionStateList <- c(transitionStateList, "WetToDry")
+      }
+    }
+    if(x[i] == "wet"){
+      if (x[i-1] == "dry"){
+        transitionStateList <- c(transitionStateList, "DryToWet")
+      }
+      else {
+        transitionStateList <- c(transitionStateList, "WetToWet")
+      }
+    }
+  }
+  return(transitionStateList)
+}
+weather_data$transitionState <- transitionState(weather_data$state)
+```
+
+```{r}
 train_data <- subset(weather_data, Year >= 2010)
 library(ggplot2)
 library(RColorBrewer)
@@ -78,8 +104,67 @@ ggplot(train_data, aes(x = factor(Year), y = train_data$Rainfall.amount..millime
 table(train_data$Month, train_data$Year)
 ```
 
+```{r}
+#Calculating transition state probabilities, in general (no respect to month/season)
+weatherTable <- table(train_data$transitionState)
 
+probWetToWet = weatherTable['WetToWet'] / (weatherTable['WetToWet'] + weatherTable['WetToDry'])
+probWetToWet
 
+probDryToDry = weatherTable['DryToDry'] / (weatherTable['DryToDry'] + weatherTable['DryToWet'])
+probDryToDry
+```
+
+```{r}
+#Basic generator i hope - no seasonal variation
+
+currentState = "dry" #can make this into a random choice later
+                                              #choosing next state depending on probs calculated above
+generateRainfallBasic <- function(genLength){
+  rainAmountList <- c()
+  for (i3 in 1:genLength){
+    if (currentState == "dry"){
+      if (runif(1) < probDryToDry){
+        currentState = "dry"
+      }
+      else{
+        currentState = "wet"
+      }
+    }
+    else if (currentState == "wet"){
+      if (runif(1) < probWetToWet){
+        currentState = "wet"
+      }
+      else{
+        currentState = "dry"
+      }
+    }
+                                      #generating amount of rainfall if state is wet, else 0
+    if (currentState == "wet"){
+      rainAmount <- rexp(1, rate = 0.15) #CHANGE RATE AND/OR DISTRIBUTION LATER, 0.1 is close, but not exact to the actual distribtion, think rate  is just 1/stdev
+      rainAmountList <- c(rainAmountList, rainAmount)
+    }
+    else{
+      rainAmountList <- c(rainAmountList, 0)
+    }
+  }
+  return(rainAmountList)
+}
+```
+
+```{r}
+#testing basic generator
+testRainfall = generateRainfallBasic(3761)
+plot(testRainfall)
+
+par(mfrow=c(2,1))
+hist(train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1 & train_data$Rainfall.amount..millimetres.<50])
+hist(testRainfall[testRainfall > 1 & testRainfall <50])
+
+par(mfrow=c(2,1))
+barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80))
+barplot(testRainfall, ylim = c(0,80))
+```
 
 
 
