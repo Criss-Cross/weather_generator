@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
+``` 
 
 ## data exploration
 
@@ -162,9 +162,112 @@ hist(train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millim
 hist(testRainfall[testRainfall > 1 & testRainfall <50])
 
 par(mfrow=c(2,1))
-barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80))
-barplot(testRainfall, ylim = c(0,80))
+barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
+barplot(testRainfall, ylim = c(0,80), main = "Simulated Data", ylab = "Rainfall (mm)", xlab = "Index")
 ```
+
+```{r}
+#test code to calculate transition probabilities for each month
+
+transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
+names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
+
+for (i4 in 1:dim(train_data)[1]){ #making dataframe with count of each transition state for each month
+  tempTransitionState <- train_data[i4, 'transitionState']
+  tempMonth <- train_data[i4, 'Month']
+  transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
+}
+```
+
+```{r}
+probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
+for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
+  
+  probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
+  
+  probTransitonStatesMonthsFrame[i, 'DryToWet'] <- transitonStatesMonthsFrame[i, 'DryToWet'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
+    
+  probTransitonStatesMonthsFrame[i, 'WetToDry'] <- transitonStatesMonthsFrame[i, 'WetToDry'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
+    
+  probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
+}
+```
+
+```{r}
+#showing how transition state probabilities vary for each month
+plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", main = "dry to dry transition state probability", type = 'l', ylab = "Probability")
+plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "wet to wet transition state probability", type = 'l', ylab = "Probability")
+```
+```{r}
+#weather generator accounting  for seasonal variation of transition states or something i hope
+#yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
+
+generateRainfallSeasonal <- function(input){
+  currentState = "dry" #can make this into a random choice later
+  rainAmountList <- c()
+  for (i5 in 1:dim(input)[1]){
+    if (currentState == "dry"){
+      if (runif(1) < probTransitonStatesMonthsFrame[input[i5, 'Month'], 'DryToDry']){ #now inputs depending on the month of input
+        currentState = "dry"
+      }
+      else{
+        currentState = "wet"
+      }
+    }
+    else if (currentState == "wet"){
+      if (runif(1) < probTransitonStatesMonthsFrame[input[i5, 'Month'], 'WetToWet']){
+        currentState = "wet"
+      }
+      else{
+        currentState = "dry"
+      }
+    }
+                                      #generating amount of rainfall if state is wet, else 0
+    if (currentState == "wet"){
+      rainAmount <- rexp(1, rate = 0.15) #CHANGE RATE AND/OR DISTRIBUTION LATER, 0.1 is close, but not exact to the actual distribtion, think rate  is just 1/stdev
+      rainAmountList <- c(rainAmountList, rainAmount)
+    }
+    else{
+      rainAmountList <- c(rainAmountList, 0)
+    }
+  }
+  return(rainAmountList)
+}
+
+```
+
+```{r}
+#testing code for seasonal generator
+inputSeasonalRainfall <- dplyr::select(train_data, 'Year', 'Month', 'Day') #using existing train data's dates to input to function, instead of putting in just how many to generate
+
+testSeasonalRainfall = generateRainfallSeasonal(inputSeasonalRainfall)
+```
+
+```{r}
+par(mfrow=c(2,1))
+barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
+barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
