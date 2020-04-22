@@ -141,7 +141,7 @@ generateRainfallBasic <- function(genLength){
     }
                                       #generating amount of rainfall if state is wet, else 0
     if (currentState == "wet"){
-      rainAmount <- rexp(1, rate = 0.15) #CHANGE RATE AND/OR DISTRIBUTION LATER, 0.1 is close, but not exact to the actual distribtion, think rate  is just 1/stdev
+      rainAmount <- 5*exp(rnorm(1))
       rainAmountList <- c(rainAmountList, rainAmount)
     }
     else{
@@ -167,7 +167,7 @@ barplot(testRainfall, ylim = c(0,80), main = "Simulated Data", ylab = "Rainfall 
 ```
 
 ```{r}
-#test code to calculate transition probabilities for each month
+#code to calculate transition probabilities for each month
 
 transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
 names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
@@ -224,7 +224,7 @@ generateRainfallSeasonal <- function(input){
     }
                                       #generating amount of rainfall if state is wet, else 0
     if (currentState == "wet"){
-      rainAmount <- rexp(1, rate = 0.15) #CHANGE RATE AND/OR DISTRIBUTION LATER, 0.1 is close, but not exact to the actual distribtion, think rate  is just 1/stdev
+      rainAmount <- 5*exp(rnorm(1)) #now log-normal dist, 5 used because is close to mean of weather_data's / the mean of what exp(rnorm(1)) is by default
       rainAmountList <- c(rainAmountList, rainAmount)
     }
     else{
@@ -249,6 +249,16 @@ barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Origin
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
 
+```{r}
+#comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
+p1 <- 5*exp(rnorm(732))
+p1 <- p1[p1>1]
+hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400))
+
+p2 <- train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1]
+hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400))
+
+```
 
 
 
