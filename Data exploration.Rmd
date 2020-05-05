@@ -152,14 +152,14 @@ generateRainfallBasic <- function(genLength){
 }
 ```
 
-```{r}
+```{r, fig.height=10}
 #testing basic generator
 testRainfall = generateRainfallBasic(3761)
 plot(testRainfall)
 
 par(mfrow=c(2,1))
-hist(train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1 & train_data$Rainfall.amount..millimetres.<50])
-hist(testRainfall[testRainfall > 1 & testRainfall <50])
+hist(train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1 & train_data$Rainfall.amount..millimetres.<50], xlab = "Actual Rainfall (mm)", main = "Actual Rainfall Frequency Histogram")
+hist(testRainfall[testRainfall > 1 & testRainfall <50], xlab = "Simulated Rainfall (mm)", main = "Simulated Rainfall Frequency Histogram")
 
 par(mfrow=c(2,1))
 barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
@@ -253,23 +253,124 @@ barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal"
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
 p1 <- 5*exp(rnorm(732))
 p1 <- p1[p1>1]
-hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400))
+hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distribution")
 
 p2 <- train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1]
-hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400))
+hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "actual distribution")
 
 ```
 
+# Testing with sampling - test on a percentage of data
+
+```{r}
+set.seed(100345)
+
+sampID <- sample.int(nrow(train_data), size = 0.5*nrow(train_data), replace = FALSE)
+train_data <- train_data[sampID,] # 50% of data for training
+test_data <- train_data[-sampID,] # 50% for testing
+```
+
+```{r}
+#code to calculate transition probabilities for each month (copied from earlier)
+
+transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
+names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
+
+for (i4 in 1:dim(train_data)[1]){ #making dataframe with count of each transition state for each month
+  tempTransitionState <- train_data[i4, 'transitionState']
+  tempMonth <- train_data[i4, 'Month']
+  transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
+}
+```
+
+```{r}
+#also copied from earlier
+probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
+for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
+  
+  probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
+  
+  probTransitonStatesMonthsFrame[i, 'DryToWet'] <- transitonStatesMonthsFrame[i, 'DryToWet'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
+    
+  probTransitonStatesMonthsFrame[i, 'WetToDry'] <- transitonStatesMonthsFrame[i, 'WetToDry'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
+    
+  probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
+}
+```
+
+```{r}
+#generate test data
+testSeasonalRainfall50 = generateRainfallSeasonal(train_data)
+```
+```{r}
+par(mfrow = c(2, 1))
+
+barplot(testSeasonalRainfall50, ylab = "Rainfall (mm)", xlab = "index", main = "Simulated data")
+barplot(test_data$Rainfall.amount..millimetres., ylab = "Rainfall (mm)", xlab  = "index", main = "Actual data")
+```
+
+# use 10 years data (2009-2018) to predict next (2019)
+```{r}
+train_data <- subset(weather_data, Year >= 2010)
+train10_data <- subset(weather_data, Year >= 2009 & Year < 2019)
+data_2019 <- subset(weather_data, Year == 2019)
+```
+
+```{r}
+#code to calculate transition probabilities for each month (copied from earlier)
+
+transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
+names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
+
+for (i4 in 1:dim(train10_data)[1]){ #making dataframe with count of each transition state for each month
+  tempTransitionState <- train10_data[i4, 'transitionState']
+  tempMonth <- train10_data[i4, 'Month']
+  transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
+}
+```
+```{r}
+#also copied from earlier
+probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
+for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
+  
+  probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
+  
+  probTransitonStatesMonthsFrame[i, 'DryToWet'] <- transitonStatesMonthsFrame[i, 'DryToWet'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
+    
+  probTransitonStatesMonthsFrame[i, 'WetToDry'] <- transitonStatesMonthsFrame[i, 'WetToDry'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
+    
+  probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
+}
+```
+
+```{r}
+# using month probabilites generate one years worth of data 
+monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- monthList['Month']
+testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+```
+```{r, fig.height=9)}
+#compare generated year against 2019
+par(mfrow = c(2,1))
+barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
+barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2019 Rainfall")
 
 
-
-
-
-
-
-
-
-
+# check other years for comparison
+par(mfrow = c(3,2))
+barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
+year <- subset(weather_data, Year == 2015)
+barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2015 Rainfall")
+year <- subset(weather_data, Year == 2008)
+barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2008 Rainfall")
+year <- subset(weather_data, Year == 2017)
+barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2017 Rainfall")
+year <- subset(weather_data, Year == 2007)
+barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2007 Rainfall")
+year <- subset(weather_data, Year == 2013)
+barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2013 Rainfall")
+rm(year)
+```
 
 
 
