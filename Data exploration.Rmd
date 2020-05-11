@@ -372,7 +372,51 @@ barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm
 rm(year)
 ```
 
+```{r}
+temp <- subset(weather_data, weather_data$state == "wet")
+mean(temp$Rainfall.amount..millimetres.)
+rm(temp)
+```
 
+
+# attemp to find patterns
+```{r}
+# create graph of difference in rainfall for years, weeks, months, years to see if there are any potnetial patters.
+
+# create a list of the weekly rainfall
+RainfallWeekly <- data.frame("Rainfall (mm)", "Week")
+colnames(RainfallWeekly) <- c("Rainfall (mm)", "Week")
+RainfallWeekly$`Rainfall (mm)` <- as.numeric(RainfallWeekly$`Rainfall (mm)`)
+RainfallWeekly$Week <- as.numeric(RainfallWeekly$Week)
+week = 1
+weekRain = 0
+for(ii in c(1: nrow(weather_data))){
+  weekRain = weekRain + weather_data[ii, 6] # rainfall amount for that row
+  
+  if(ii%%7 == 0){ # every 7th row
+    RainfallWeekly[(ii/7), 1] <- weekRain # 1 row of RainfallWeekly created every 7 rows (1 weeks) - inserting rainfall total for that week
+    RainfallWeekly[(ii/7), 2] <- week
+    week = week + 1
+    weekRain = 0 # clear total rainfall to prepare for next week
+  }
+}
+```
+```{r}
+RainfallWeeklyDiff <- data.frame(c(1:(nrow(RainfallWeekly)-1)), c(1:(nrow(RainfallWeekly)-1))) # data frame with two columns, one less row than RainfallWeekly
+colnames(RainfallWeeklyDiff) <- c("Rainfall diff (mm)", "Week")
+RainfallWeeklyDiff$`Rainfall diff (mm)` <- diff(RainfallWeekly$`Rainfall (mm)`) # change in weeks
+```
+```{r, fig.height= 14}
+par(mfrow = c(4,1))
+plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+hist(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)")
+plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+hist(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)")
+
+```
+plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+```
 
 
 
