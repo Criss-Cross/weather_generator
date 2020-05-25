@@ -1,5 +1,5 @@
 ---
-title: "data exploration"
+title: "Rainfall Data"
 author: "Sean Gibbon"
 date: "19 April 2020"
 output: html_document
@@ -424,15 +424,3 @@ plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "wee
 plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
 plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 ```
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> 08d496c3257b9528ea58334eac844593a9aceed2
