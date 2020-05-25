@@ -1,5 +1,5 @@
 ---
-title: "Rainfall Data"
+title: "Weather Generators"
 author: "Sean Gibbon"
 date: "19 April 2020"
 output: html_document
@@ -9,14 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
 
-## data exploration
-
-<<<<<<< HEAD
+## Begin code:/
 =======
 
-```{r}
-print('test')
-```
+Reading the data in from the csv file
 ```{r}
 data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
 weather_data <- data
@@ -402,6 +398,7 @@ for(ii in c(1: nrow(weather_data))){
   }
 }
 ```
+
 ```{r}
 RainfallWeeklyDiff <- data.frame(c(1:(nrow(RainfallWeekly)-1)), c(1:(nrow(RainfallWeekly)-1))) # data frame with two columns, one less row than RainfallWeekly
 colnames(RainfallWeeklyDiff) <- c("Rainfall diff (mm)", "Week")
@@ -416,6 +413,7 @@ plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab 
 plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 
 ```
+
 ```{r, fig.height= 14}
 # plot second 700 weeks first against the difference in rainfall, and then the rainfall per week
 par(mfrow = c(4,1))
@@ -424,3 +422,5 @@ plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "wee
 plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
 plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 ```
+
+Have to do wilcoxon ranked test.
