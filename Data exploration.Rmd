@@ -349,7 +349,8 @@ monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year 
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
 ```
-```{r, fig.height=9)}
+
+```{r, fig.height=9}
 #compare generated year against 2019
 par(mfrow = c(2,1))
 barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
