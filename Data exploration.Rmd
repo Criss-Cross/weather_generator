@@ -424,3 +424,67 @@ plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "w
 ```
 
 Have to do wilcoxon ranked test.
+
+```{r}
+rainSort_2019 <- data_2019$Rainfall.amount..millimetres.
+# qqplot before removing 'dry' days
+qqnorm(rainSort_2019, pch = 1, frame = F, main = "Normal Q-Q Plot of Rainfall 2019 (including dry days)")
+qqline(rainSort_2019, col = "red", lwd = 2)
+rainSort_2019 <- rainSort_2019[which(rainSort_2019 != 0)]
+# qqplot after removing 'dry' days
+qqnorm(rainSort_2019, pch = 1, frame = F, main = "Normal Q-Q Plot of Rainfall 2019 (excluding dry days)")
+qqline(rainSort_2019, col = "red", lwd = 2)
+hist(rainSort_2019, breaks = 50)
+# data is not normally distributed
+rm(rainSort_2019)
+```
+
+
+# Wilcoxon signed rank test
+
+```{r}
+length(rain2019$Rainfall.amount..millimetres.)
+length(testSeasonalRainfall10)
+```
+```{r}
+table(rain2019$Month)
+# missing a day from October and December
+table(rain2019$Day)
+# one month is missing a day 5, and another is missing a day 19 (both 11 when should be 12)
+temp <- subset(rain2019, Day == 5)
+temp$Month # 5th of October missing
+
+temp <- subset(rain2019, Day == 19)
+temp$Month # 19th of December missing
+rm(temp)
+```
+```{r}
+# to perform Wilcoxon Signed Rank test, remove those dates from testSeasonalRainfall10
+# 2019 is a non leap year
+
+which(rain2019$date == "4-10-2019") # find what row the day before 5-10-2019 is
+# thereforer 5-10-2019 would be row 278 (277+1)
+which(rain2019$date == "18-12-2019") # find what row the day before 5-10-2019 is
+# thereforer 5-10-2019 would be row 353 (351+2). Add two as both 5th october and 19th december are missing
+
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data drom testSeasonalRainfall10
+```
+
+```{r}
+# test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
+rain2019 <- subset(weather_data, Year == 2019)
+wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T, alternative = "t")
+
+
+# as the p-value = 0.9695, it can be concluded that there is no significant diference between the simulated 2019 data and the actual 2019 data. This means that the data is not consistently too high or too low. 
+# While the simulation may not be an accurate prediction of 2019 (as seen in the barplots), the simulation was also not logically flawed, as there is not a significant difference between the median of the simulation and the median of the actual
+```
+```{r}
+median(simRainfall2019)
+median(rain2019$Rainfall.amount..millimetres.)
+
+# given the number of dry days, it makes sense that the median's would be very similar in the Wilcoxon Signed Rank test
+rm(simRainfall2019)
+```
+
+
