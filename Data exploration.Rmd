@@ -196,6 +196,29 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){
 ```
 
 ```{r}
+#testing average rainfall when its rains in each month, and for wettowet vs drytowet transitions.
+test_w2w <- train_data$Rainfall.amount..millimetres.[train_data$transitionState == "WetToWet"]
+test_d2w <- train_data$Rainfall.amount..millimetres.[train_data$transitionState == "DryToWet"]
+mean(test_w2w)
+mean(test_d2w)
+wilcox.test(test_d2w, test_w2w)
+#since resulting wilcox test p-value is 0.85, we conclude that theres no difference in rainfall depending on the transition state, and do not need to include it in our model.
+
+
+test_rainfallPerMonth <- c()
+for (i in 1:12){
+  temp<- train_data$Rainfall.amount..millimetres.[train_data$state == "wet" & train_data$Month == i]
+  test_rainfallPerMonth <- c(test_rainfallPerMonth, list(temp))
+  rm(temp)
+}
+
+test_rainfallPerMonth <- train_data[train_data$state == "wet",c(4,6)]
+kruskal.test(Rainfall.amount..millimetres. ~ Month, data = test_rainfallPerMonth)
+#p-val = 0.00016, therefore difference between average rainfall for each 
+
+```
+
+```{r}
 #How the transition state probabilities vary for each month
 plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", main = "'dry to dry' transition state probability", type = 'l', ylab = "Probability")
 plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "'wet to wet' transition state probability", type = 'l', ylab = "Probability")
