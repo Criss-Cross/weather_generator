@@ -8,7 +8,16 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
-
+Report section:
+=======
+F
+i
+l
+l
+t
+h
+i
+s
 ## Begin code:
 =======
 Link to data source: 
@@ -233,7 +242,6 @@ generateRainfallSeasonal <- function(input){
   }
   return(rainAmountList)
 }
-
 ```
 
 ```{r}
