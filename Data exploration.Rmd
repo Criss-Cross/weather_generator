@@ -8,26 +8,22 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
-Report section:
+# Report section:
 =======
 
-F
-i
-l
-l
-t
-h
-i
-s
+Do the report part here
 
 =======
-## Begin code:
+
+# Code:
 =======
+
 Link to data source: 
 http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
 
-Reading in the data from the csv file.
+# Preliminary Setup 
 ```{r}
+# Reading in the data from the csv file
 data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
 weather_data <- data
 weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetres.) == FALSE),]
@@ -201,12 +197,12 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){
 
 ```{r}
 #How the transition state probabilities vary for each month
-plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", main = "dry to dry transition state probability", type = 'l', ylab = "Probability")
-plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "wet to wet transition state probability", type = 'l', ylab = "Probability")
+plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", main = "'dry to dry' transition state probability", type = 'l', ylab = "Probability")
+plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "'wet to wet' transition state probability", type = 'l', ylab = "Probability")
 ```
 ```{r}
-#weather generator accounting  for seasonal variation of transition states or something i hope
-#yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
+#Weather generator accounting  for seasonal variation of transition states or something i hope
+#Yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
 
 generateRainfallSeasonal <- function(input){
   currentState = "dry" #can make this into a random choice later
@@ -265,7 +261,7 @@ hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "actual distribut
 
 ```
 
-# Testing with sampling - test on a percentage of data
+# Testing with sampling - Testing on a percentage of the data
 
 ```{r}
 set.seed(100345)
@@ -314,7 +310,7 @@ barplot(testSeasonalRainfall50, ylab = "Rainfall (mm)", xlab = "index", main = "
 barplot(test_data$Rainfall.amount..millimetres., ylab = "Rainfall (mm)", xlab  = "index", main = "Actual data")
 ```
 
-# use 10 years data (2009-2018) to predict next (2019)
+# Using the data from the previous 10 years (2009-2018) to predict the weather for the next year (2019)
 ```{r}
 train_data <- subset(weather_data, Year >= 2010)
 train10_data <- subset(weather_data, Year >= 2009 & Year < 2019)
@@ -447,20 +443,18 @@ rm(rainSort_2019)
 ```
 
 
-# Wilcoxon signed rank test on the data in 2019
+# Wilcoxon signed rank test on the data for 2019
 
 ```{r}
 rain2019 <- subset(weather_data, Year == 2019)
 length(rain2019$Rainfall.amount..millimetres.)
 length(testSeasonalRainfall10)
-```
 
-```{r}
 table(rain2019$Month)
 # Since there are two days missing from October and December, we will have to find the days and remove them from our simulated results.
 table(rain2019$Day)
 # one month is missing a day 5, and another is missing a day 19 (both 11 when should be 12)/
-temp <- subset(rain2019, Day == 5)/
+temp <- subset(rain2019, Day == 5)
 temp$Month # 5th of October missing
 temp <- subset(rain2019, Day == 19)
 temp$Month # 19th of December missing
@@ -472,21 +466,14 @@ rm(temp)
 #October 5th and December 19th are missing, so we remove them
 month_result <- which(rain2019$date == "4-10-2019" | rain2019$date=="18-12-2019")
 simRainfall2019 <- testSeasonalRainfall10[-c(month_result[1]+1, month_result[2]+1)]
-```
 
-```{r}
 # Test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
 wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T, alternative = "t")
 
-
-# Since the p-value = 0.9695, it can be concluded that there is no significant diference between the simulated 2019 data and the actual 2019 data. This means that the data is not consistently too high or too low. 
+# Since the p-value is relatively high, it can be concluded that there is no significant diference between the simulated 2019 data and the actual 2019 data. 
 # While the simulation may not be an accurate prediction of 2019 (as seen in the barplots), the simulation was also not logically flawed, as there is not a significant difference between the median of the simulation and the median of the actual.
-```
-```{r}
-median(simRainfall2019)
-median(rain2019$Rainfall.amount..millimetres.)
-
-# given the number of dry days, it makes sense that the median's would be very similar in the Wilcoxon Signed Rank test
+#Furthermore, a qucik comparison of the medians in the Wilcoxon Signed Rank test shows that (as expected) they are also very similar.
+cat("Median of actual and simulated rainfall respectively: ", median(rain2019$Rainfall.amount..millimetres.), median(simRainfall2019))
 rm(simRainfall2019)
 ```
 
