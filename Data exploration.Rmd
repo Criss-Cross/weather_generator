@@ -31,12 +31,6 @@ weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetr
 ```
 
 ```{r}
-#Useful stats:
-range(weather_data$Year)
-unique(weather_data$Bureau.of.Meteorology.station.number)
-unique(weather_data$Product.code)
-```
-```{r}
 table(weather_data$Year, weather_data$Quality)
 ```
 
