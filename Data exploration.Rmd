@@ -11,8 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Begin code:
 =======
+Link to data source: 
+http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
 
-Reading in the data from the csv file
+Reading in the data from the csv file.
 ```{r}
 data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
 weather_data <- data
@@ -79,9 +81,9 @@ weather_data$transitionState <- transitionState(weather_data$state)
 train_data <- subset(weather_data, Year >= 2010)
 library(ggplot2)
 library(RColorBrewer)
-# some plots of rainfall data grouped by year and month
 
-ggplot(train_data, aes(x = factor(Month), y = train_data$Rainfall.amount..millimetres., fill = factor(Year))) + 
+# Plotting the rainfall data (grouped by years and months)
+ggplot(train_data, aes(x = factor(Month), y = Rainfall.amount..millimetres., fill = factor(Year))) + 
   geom_bar(stat = "identity") + 
   scale_fill_brewer(palette = "Paired") + 
   xlab("Month")+
@@ -89,7 +91,7 @@ ggplot(train_data, aes(x = factor(Month), y = train_data$Rainfall.amount..millim
   labs(fill = "Year")+
   ggtitle("Rainfall of each month. Divided into Years")
 
-ggplot(train_data, aes(x = factor(Year), y = train_data$Rainfall.amount..millimetres., fill = factor(Month))) + 
+ggplot(train_data, aes(x = factor(Year), y = Rainfall.amount..millimetres., fill = factor(Month))) + 
   geom_bar(stat = "identity") + 
   scale_fill_brewer(palette = "Paired") + 
   xlab("Year")+
@@ -102,7 +104,7 @@ table(train_data$Month, train_data$Year)
 ```
 
 ```{r}
-#Calculating transition state probabilities, in general (no respect to month/season)
+#Calculating transition state probabilities, in general (no respect to month or season)
 weatherTable <- table(train_data$transitionState)
 
 probWetToWet = weatherTable['WetToWet'] / (weatherTable['WetToWet'] + weatherTable['WetToDry'])
@@ -113,7 +115,7 @@ probDryToDry
 ```
 
 ```{r}
-#Basic generator i hope - no seasonal variation
+#Basic generator (No seasonal variation)
 
 currentState = "dry" #can make this into a random choice later
                                               #choosing next state depending on probs calculated above
@@ -150,7 +152,7 @@ generateRainfallBasic <- function(genLength){
 ```
 
 ```{r, fig.height=10}
-#testing basic generator
+#Basic generator tests
 testRainfall = generateRainfallBasic(3761)
 plot(testRainfall)
 
@@ -164,12 +166,12 @@ barplot(testRainfall, ylim = c(0,80), main = "Simulated Data", ylab = "Rainfall 
 ```
 
 ```{r}
-#code to calculate transition probabilities for each month
+#Calculates the transition probabilities for each month
+transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #Initialises 12x4 frame filled with zeroes
+names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet')
 
-transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
-names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
-
-for (i4 in 1:dim(train_data)[1]){ #making dataframe with count of each transition state for each month
+#Makes the dataframe with the count of each transition state with each month
+for (i4 in 1:dim(train_data)[1]){
   tempTransitionState <- train_data[i4, 'transitionState']
   tempMonth <- train_data[i4, 'Month']
   transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
@@ -177,8 +179,9 @@ for (i4 in 1:dim(train_data)[1]){ #making dataframe with count of each transitio
 ```
 
 ```{r}
-probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
-for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
+#Calculates the probabilities for each month in the data frame
+probTransitonStatesMonthsFrame <- transitonStatesMonthsFrame
+for (i in 1:dim(transitonStatesMonthsFrame)[1]){
   
   probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
   
@@ -191,7 +194,7 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs f
 ```
 
 ```{r}
-#showing how transition state probabilities vary for each month
+#How the transition state probabilities vary for each month
 plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", main = "dry to dry transition state probability", type = 'l', ylab = "Probability")
 plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "wet to wet transition state probability", type = 'l', ylab = "Probability")
 ```
