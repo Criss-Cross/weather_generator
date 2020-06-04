@@ -30,11 +30,6 @@ The data for use in this project is sourced from the Bureau of Meteorology (BOM)
 
 #### Critical Analysis
 The Markov chain probabilities for continued rain can be used to “modify” or add a constant to predicted rainfall. Looking at the rainfall data, longer successive periods of rain have higher average rainfalls per day for the period, and so using the higher chance of rain for the next day (modified) to also add a modifier to the predicted amount of rainfall may be useful. As was performed by Mehrotra and Sharma (Mehrotra & Sharma, 2007), it may be useful to modify it to a semi-parametric model, and include aggregate conditioning variables to better model the longer scale monthly and yearly weather conditions, and make use of kernel density procedures to better model the likely non-independent wet days and their corresponding rainfall amounts.
-<<<<<<< HEAD
-=======
-
-####References:
->>>>>>> 066dfd6455e655d9ce60980e4344c3d4b5c55bda
 
 # Methodology and Data
 
@@ -85,7 +80,7 @@ Main
 - Also produce boxplots for actual dataset. 
 - Show simulated boxplots and actual boxplots side by side to see how well the markov chain simulated the overall amount of rainfall for each season. 
 
-#### References:
+# References:
 
 Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall occurrence at Tel Aviv. Q.J.R. Meteorol. Soc., 88: 90-95. doi:10.1002/qj.49708837511.  
 
