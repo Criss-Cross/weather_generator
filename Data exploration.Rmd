@@ -10,7 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ``` 
 # Problem statement and background:
 
-
 # Brief literature review:
 
 Link to data source: 
@@ -21,15 +20,15 @@ http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_typ
 # Reading in the data from the csv file
 data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
 weather_data <- data
-weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made 
+weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetres.) == FALSE),] # Excludes rows with no rainfall record made 
 ```
 
 ```{r}
-weather_data$date <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
+weather_data$date <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # Creating a column that contains the date for easy indentification
 ```
 
 ```{r}
-# function to categorise day as either 'wet' or 'dry' for the Markov Chain functions
+# Function to categorise day as either 'wet' or 'dry' for the Markov Chain functions
 state <- function(x){
   stateList <- c()
   for(ii in 1:length(x)){
@@ -46,9 +45,9 @@ weather_data$state <- state(weather_data$Rainfall.amount..millimetres.)
 ```
 
 ```{r}
-# function establishing Markov Chain transition state. Establishing the relationship between the rainfall of a given day and the day before it.
+# Function establishing Markov Chain transition state. Establishing the relationship between the rainfall of a given day and the day before it.
 transitionState <- function(x){
-  transitionStateList <- c('') #can't find transition state of first observation
+  transitionStateList <- c('') # Can't find transition state of first observation.
   for(i in 2:length(x)){
     if(x[i] == "dry"){
       if (x[i-1] == "dry"){
@@ -73,11 +72,11 @@ weather_data$transitionState <- transitionState(weather_data$state)
 ```
 
 ```{r}
-train_data <- subset(weather_data, Year >= 2010) # only look at the mos recent, relevant data.
+train_data <- subset(weather_data, Year >= 2010) # Only look at the most recent, relevant data.
 library(ggplot2)
 library(RColorBrewer)
 
-# explorative plots investigating the distribution of rainfall across months and years
+# Explorative plots investigating the distribution of rainfall across months and years
 
 # Plotting the rainfall data (grouped by years and months)
 # Distribution of rainfall by month (segmented by year)
@@ -299,9 +298,9 @@ barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Origin
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
 
-# use 10 years data (2009-2018) to predict next (2019)
+# Using the last 10 years data (2009-2018) to predict next (2019)
 ```{r}
-#comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
+#comparing log-normal against actual data, veery close fit, will use log-normal for rainfall sim
 p1 <- 5*exp(rnorm(732))
 p1 <- p1[p1>1]
 hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distribution")
