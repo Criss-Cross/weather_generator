@@ -29,6 +29,58 @@ Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall oc
 Miller, D. K. and Homan, S. M. (1994), Determining Transition Probabilities: Confusion and Suggestions. Medical Decision Making., 14: 52-58. 
 
 Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of stochastic weather models. Progress in Physical Geography., 23: 329-357. 
+
+####Methodology and Data
+
+#####Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
+1. Produce markov chain model on overall data
+2. Split data based on Wet vs Dry Seasons
+3. Split data based on Seasons
+
+
+#####Overall Methodology:
+
+1. Data Cleaning:
+- Deleting a few extra columns not required for analysis.
+- Ensure a consistent number of seasons are present
+
+
+2. Precipitation Presence:
+
+EDA:
+- Producing boxplots to compare between different seasons.
+- Producing Spell length distribution.
+- Producing Image plots.
+
+Main:
+
+Markov Chain:
+- Assigning 1 to days with rainfall greater than 1mm, and 0 otherwise.
+- Use rmarkovchain package to construct the transition matrix.
+
+Spell Length:
+- The days before transition 
+- Calculated using interarrival function.
+- Apply QQ diagnostic plots to compare simulated spell length to actual spell length shown in the dataset.
+
+
+3. Rainfall amount:
+
+Note that this follows the literature of "Daily Rainfall Prediction using Generalized Linear Bivariate Model - A Case Study".
+
+EDA
+- Create vector of summed rainfall.
+- Create new variables to store overall amounts of rainfall for actual dataset and simulated.
+- Produce more EDA for rainfall distribution amounts using line plots.
+- Also graph the total yearly rainfall.
+- Plot aggregates of the simulated rainfall amounts against the actual rainfall amounts.
+
+Main
+- Produce boxplots for each simulated rainfall amount per season. 
+- Also produce boxplots for actual dataset. 
+- Show simulated boxplots and actual boxplots side by side to see how well the markov chain simulated the overall amount of rainfall for each season. 
+
+
  
 
 Link to data source: 
