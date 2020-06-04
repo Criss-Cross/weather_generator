@@ -22,23 +22,14 @@ In an article published in the quarterly Journal of the Royal Meteorological Soc
 #### Critical Analysis
 The Markov chain probabilities for continued rain can be used to “modify” or add a constant to predicted rainfall. Looking at the rainfall data, longer successive periods of rain have higher average rainfalls per day for the period, and so using the higher chance of rain for the next day (modified) to also add a modifier to the predicted amount of rainfall may be useful. As was performed by Mehrotra and Sharma (Mehrotra & Sharma, 2007), it may be useful to modify it to a semi-parametric model, and include aggregate conditioning variables to better model the longer scale monthly and yearly weather conditions, and make use of kernel density procedures to better model the likely non-independent wet days and their corresponding rainfall amounts.
 
-# References:
+# Methodology and Data
 
-Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall occurrence at Tel Aviv. Q.J.R. Meteorol. Soc., 88: 90-95. doi:10.1002/qj.49708837511.  
-
-Miller, D. K. and Homan, S. M. (1994), Determining Transition Probabilities: Confusion and Suggestions. Medical Decision Making., 14: 52-58. 
-
-Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of stochastic weather models. Progress in Physical Geography., 23: 329-357. 
-
-####Methodology and Data
-
-#####Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
+##### Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
 1. Produce markov chain model on overall data
 2. Split data based on Wet vs Dry Seasons
 3. Split data based on Seasons
 
-
-#####Overall Methodology:
+##### Overall Methodology:
 
 1. Data Cleaning:
 - Deleting a few extra columns not required for analysis.
@@ -80,8 +71,14 @@ Main
 - Also produce boxplots for actual dataset. 
 - Show simulated boxplots and actual boxplots side by side to see how well the markov chain simulated the overall amount of rainfall for each season. 
 
+#### References:
 
- 
+Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall occurrence at Tel Aviv. Q.J.R. Meteorol. Soc., 88: 90-95. doi:10.1002/qj.49708837511.  
+
+Miller, D. K. and Homan, S. M. (1994), Determining Transition Probabilities: Confusion and Suggestions. Medical Decision Making., 14: 52-58. 
+
+Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of stochastic weather models. Progress in Physical Geography., 23: 329-357. 
+
 Bureau of Meterology. (2013), Climate Data Online. Australian Government Bureau of Meteorology. IDCJAC0009_009225_1800_Data.csv
 http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
 
@@ -629,8 +626,11 @@ set.seed(12345)
 monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+```
 
-simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
+
+```{r}
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # Removing day 278 and day 353 data from testSeasonalRainfall10 because we are missing data.
 
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
@@ -642,6 +642,7 @@ sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
 sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
 
 ```
+
 ```{r}
 set.seed(347876)
 
@@ -660,6 +661,7 @@ sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
 sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
 
 ```
+
 ```{r}
 set.seed(3456789)
 # using month probabilites generate one years worth of data 
@@ -687,9 +689,7 @@ sum(train10_data$Rainfall.amount..millimetres.)/10 # /10 to get average of 10 ye
 sum(rain2019$Rainfall.amount..millimetres.)
 ```
 
-
-
-```{r}
+```{r, results = 'hide'}
 median(simRainfall2019)
 median(rain2019$Rainfall.amount..millimetres.)
 
@@ -698,8 +698,10 @@ median(rain2019$Rainfall.amount..millimetres.)
 # 2019 is a non leap year so February will have 28 days
 #October 5th and December 19th are missing, so we remove them
 month_result <- which(rain2019$date == "4-10-2019" | rain2019$date=="18-12-2019")
-simRainfall2019 <- testSeasonalRainfall10[-c(month_result[1]+1, month_result[2]+1)]
+```
 
+```{r}
+simRainfall2019 <- testSeasonalRainfall10[-c(month_result[1]+1, month_result[2]+1)] #Removing 4/10/19 and 18/12/19 because these dates are missing from the data.
 # Test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
 wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T, alternative = "t")
 
