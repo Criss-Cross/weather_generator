@@ -241,13 +241,13 @@ plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", mai
 plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "'wet to wet' transition state probability", type = 'l', ylab = "Probability")
 ```
 ```{r}
-<<<<<<< HEAD
+
 #weather generator accounting  for seasonal variation of transition states 
 #yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
-=======
+
 #Weather generator accounting  for seasonal variation of transition states or something i hope
 #Yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
->>>>>>> f4d971db1db01de0ab022763f72bc85fa6e0556d
+
 
 generateRainfallSeasonal <- function(input){
   # input must be weather_data or a subset of weather_data
@@ -299,9 +299,7 @@ barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Origin
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
 
-<<<<<<< HEAD
 # use 10 years data (2009-2018) to predict next (2019)
-=======
 ```{r}
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
 p1 <- 5*exp(rnorm(732))
@@ -363,7 +361,7 @@ barplot(test_data$Rainfall.amount..millimetres., ylab = "Rainfall (mm)", xlab  =
 ```
 
 # Using the data from the previous 10 years (2009-2018) to predict the weather for the next year (2019)
->>>>>>> f4d971db1db01de0ab022763f72bc85fa6e0556d
+
 ```{r}
 train_data <- subset(weather_data, Year >= 2010)
 train10_data <- subset(weather_data, Year >= 2009 & Year < 2019)
@@ -499,7 +497,7 @@ rain2019 <- subset(weather_data, Year == 2019)
 length(rain2019$Rainfall.amount..millimetres.)
 length(testSeasonalRainfall10)
 
-<<<<<<< HEAD
+```
 ```{r}
 # function to return the sum of ranks of difference (w+ and w-) that are part of the Wilcoxon signed rank calculations
 returnRanks <- function(simulated, actual){
@@ -517,8 +515,7 @@ returnRanks <- function(simulated, actual){
 
 
 ```{r}
-=======
->>>>>>> f4d971db1db01de0ab022763f72bc85fa6e0556d
+
 table(rain2019$Month)
 # Since there are two days missing from October and December, we will have to find the days and remove them from our simulated results.
 table(rain2019$Day)
@@ -530,7 +527,6 @@ temp$Month # 19th of December missing
 rm(temp)
 ```
 ```{r}
-<<<<<<< HEAD
 # to perform Wilcoxon Signed Rank test must have paired data, so remove those extra dates from testSeasonalRainfall10
 # 2019 is a non leap year
 
@@ -629,7 +625,6 @@ median(simRainfall2019)
 median(rain2019$Rainfall.amount..millimetres.)
 
 # given the number of dry days, it makes sense that the median's would be very similar in the Wilcoxon Signed Rank test
-=======
 # To perform the Wilcoxon Signed Rank test we remove those dates from testSeasonalRainfall10
 # 2019 is a non leap year so February will have 28 days
 #October 5th and December 19th are missing, so we remove them
@@ -643,7 +638,6 @@ wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T,
 # While the simulation may not be an accurate prediction of 2019 (as seen in the barplots), the simulation was also not logically flawed, as there is not a significant difference between the median of the simulation and the median of the actual.
 #Furthermore, a qucik comparison of the medians in the Wilcoxon Signed Rank test shows that (as expected) they are also very similar.
 cat("Median of actual and simulated rainfall respectively: ", median(rain2019$Rainfall.amount..millimetres.), median(simRainfall2019))
->>>>>>> f4d971db1db01de0ab022763f72bc85fa6e0556d
 rm(simRainfall2019)
 ```
 
@@ -659,13 +653,13 @@ par(mfrow = c(2,1))
 barplot(simRainfall2013, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
 barplot(rain2013$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2013 Rainfall")
 
-  diffs <- (simRainfall2013 - rain2013$Rainfall.amount..millimetres.)
-  diffs <- diffs[diffs != 0]
-  posDifs <- which(diffs > 0)
-  negDiffs <- which(diffs < 0)
-  rank <- rank(abs(diffs))
-  rankPosDiff <- sum(rank[posDifs])
-  rankNegDiff <- sum(rank[negDiffs]) 
+diffs <- (simRainfall2013 - rain2013$Rainfall.amount..millimetres.)
+diffs <- diffs[diffs != 0]
+posDifs <- which(diffs > 0)
+negDiffs <- which(diffs < 0)
+rank <- rank(abs(diffs))
+rankPosDiff <- sum(rank[posDifs])
+rankNegDiff <- sum(rank[negDiffs]) 
 
 rankPosDiff
 rankNegDiff
