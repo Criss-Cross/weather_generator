@@ -8,15 +8,10 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
-# Report section:
-=======
+# Problem statement and background:
 
-Do the report part here
 
-=======
-
-# Code:
-=======
+# Brief literature review:
 
 Link to data source: 
 http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
