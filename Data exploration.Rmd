@@ -204,19 +204,24 @@ mean(test_d2w)
 wilcox.test(test_d2w, test_w2w)
 #since resulting wilcox test p-value is 0.85, we conclude that theres no difference in rainfall depending on the transition state, and do not need to include it in our model.
 
+test_rainfallPerMonth <- train_data[train_data$state == "wet",c(4,6)]
+kruskal.test(Rainfall.amount..millimetres. ~ Month, data = test_rainfallPerMonth)
+#p-val = 0.00016, therefore difference between average rainfall for each month
 
-test_rainfallPerMonth <- c()
+```
+```{r}
+#calculating the mean rainfall when it rains for each month, to change how much it rains according to the generator later on. Limited to less than 60 mls as the dataset is not large enough for large rainfall amounts (such as 114ml in feburary) to not throw the mean off.
+rainMonthData <- c()
 for (i in 1:12){
-  temp<- train_data$Rainfall.amount..millimetres.[train_data$state == "wet" & train_data$Month == i]
-  test_rainfallPerMonth <- c(test_rainfallPerMonth, list(temp))
+  temp<- train_data$Rainfall.amount..millimetres.[train_data$state == "wet" & train_data$Month == i & train_data$Rainfall.amount..millimetres. < 60]
+  rainMonthData <- c(rainMonthData, list(temp))
   rm(temp)
 }
 
-test_rainfallPerMonth <- train_data[train_data$state == "wet",c(4,6)]
-kruskal.test(Rainfall.amount..millimetres. ~ Month, data = test_rainfallPerMonth)
-#p-val = 0.00016, therefore difference between average rainfall for each 
+rainfallAvgMonth <- sapply(rainMonthData, mean)
 
 ```
+
 
 ```{r}
 #How the transition state probabilities vary for each month
@@ -249,7 +254,10 @@ generateRainfallSeasonal <- function(input){
     }
                                       #generating amount of rainfall if state is wet, else 0
     if (currentState == "wet"){
-      rainAmount <- 5*exp(rnorm(1)) #now log-normal dist, 5 used because is close to mean of weather_data's / the mean of what exp(rnorm(1)) is by default
+      
+      #rainAmount <- 5*exp(rnorm(1)) #now log-normal dist, 5 used because is close to mean of weather_data's / the mean of what exp(rnorm(1)) is by default /// Old Version 
+      rainAmount <- rainfallAvgMonth[input[i5, 'Month']]*exp(rnorm(1))/1.648 #average of rnorm(exp(1)) is ~1.648, so we divide by that so the average of each month will just be the actual average calculated from rainfallAvgMonth.
+      
       rainAmountList <- c(rainAmountList, rainAmount)
     }
     else{
