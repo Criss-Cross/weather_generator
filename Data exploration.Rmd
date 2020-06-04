@@ -18,9 +18,23 @@ In this project we will be using a two-state Markov chain to predict the rainfal
 
 In an article published in the quarterly Journal of the Royal Meteorological Society in 1962, Gabriel and Neumann first recognised that the frequency-distributions for wet and dry spells created by that point by Williams (1952) and Longley (1953) could be modelled through a Markov chain. They created a statistical model modelling daily rainfall occurrence in Tel Aviv using a first-order Markov chain probability model, under the assumption that whether it will rain or not on the next day will depend on whether rain occurred on the current day. 
 
+Another study conducted by Chowdhury and Lockart (2017) also proposed using a two-state Markov chain to create a stochastic rainfall model focusing on daily rainfall and employed a gamma distribution to model the amount of rain for “wet” days. The model was run multiple times and calculated the mean and standard deviation of the rainfall amount to generate the expected rainfall, and the occurrence of rainfall were modelled using the Markov chain.
+
+Markov chains have also been used with semi-parametric models that make use of aggregate conditioning variables that can be chosen, to better represent larger time period monthly and annually occurring rainfall patterns. This is particularly useful, as basic two-state markov models, while accurate for short-term weather conditions, have typically underrepresented the overall variance across month and year-based time periods (Mehrotra & Sharma, 2007). 
+
+As was observed in the rainfall data, rainfall amount for each day appeared to not be independent as would be expected for a typical gamma distribution used for each independent wet day, as larger “strings” of wet days had higher average rainfall amounts compared to single wet day events. A kernel density procedure was performed to better model this rainfall distribution, which introduces Markov first order dependence to the model  for rainfall amounts, and may be applicable for our weather model (Mehrotra & Sharma, 2007). 
+
+It is important to note that the current weather generator distinguishes between rainfall occurrence and rainfall amount. Occurence contains two states - either wet or dry. Rainfall amount on the other hand tries to determine the actual numerical amount of rainfall on wet days and thus needs to be modelled and simulated using other means. This can be done using a variety of statistical distributions, including a Gamma (Thom, 1958; Katz, 1977; Buishand, 1977; 1978; Stern and Coe, 1984; Wilks, 1989; 1992) or Exponential (Ananthakrishnan & Soman, 1989; Rodriguez-Iturbe, Cox & Isham, 1987) distribution. For the current study, both distributions were run and examined using diagnostic tests. 
+
+The data for use in this project is sourced from the Bureau of Meteorology (BOM).
 
 #### Critical Analysis
 The Markov chain probabilities for continued rain can be used to “modify” or add a constant to predicted rainfall. Looking at the rainfall data, longer successive periods of rain have higher average rainfalls per day for the period, and so using the higher chance of rain for the next day (modified) to also add a modifier to the predicted amount of rainfall may be useful. As was performed by Mehrotra and Sharma (Mehrotra & Sharma, 2007), it may be useful to modify it to a semi-parametric model, and include aggregate conditioning variables to better model the longer scale monthly and yearly weather conditions, and make use of kernel density procedures to better model the likely non-independent wet days and their corresponding rainfall amounts.
+<<<<<<< HEAD
+=======
+
+####References:
+>>>>>>> 066dfd6455e655d9ce60980e4344c3d4b5c55bda
 
 # Methodology and Data
 
