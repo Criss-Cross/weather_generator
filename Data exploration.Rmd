@@ -217,7 +217,13 @@ test_rainfallPerMonth <- train_data[train_data$state == "wet",c(4,6)]
 kruskal.test(Rainfall.amount..millimetres. ~ Month, data = test_rainfallPerMonth)
 #p-val = 0.00016, therefore difference between average rainfall for each month
 
+rm(test_d2w)
+rm(test_w2w)
+
+rm(test_rainfallPerMonth)
+
 ```
+
 ```{r}
 #calculating the mean rainfall when it rains for each month, to change how much it rains according to the generator later on. Limited to less than 60 mls as the dataset is not large enough for large rainfall amounts (such as 114ml in feburary) to not throw the mean off.
 rainMonthData <- c()
@@ -459,20 +465,22 @@ RainfallWeeklyDiff$`Rainfall diff (mm)` <- diff(RainfallWeekly$`Rainfall (mm)`) 
 ```{r, fig.height= 14}
 # plot first 700 weeks first against the difference in rainfall, and then the rainfall per week
 par(mfrow = c(4,1))
-plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b", main = "Difference in Rainfall (mm) across weeks")
+plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
+plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b", main = "Difference in Rainfall (mm) across weeks")
+plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
 
+
+# the seasonal trends can be clearly seen through these plots, however there does not seem to be any calear patterns in the wet weeks. As such, a simulator using weeks will not be explored.
 ```
 
 ```{r, fig.height= 14}
 # plot second 700 weeks first against the difference in rainfall, and then the rainfall per week
-par(mfrow = c(4,1))
-plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+#par(mfrow = c(4,1))
+#plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+#plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+#plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+#plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 ```
 
 ```{r}
@@ -649,10 +657,6 @@ rain2013 <- subset(weather_data, Year == 2013)
 simRainfall2013 <- generateRainfallSeasonal(monthList)
 wilcox.test(simRainfall2013, rain2013$Rainfall.amount..millimetres., paired = T, conf.int = T, conf.level = 0.95)
 
-par(mfrow = c(2,1))
-barplot(simRainfall2013, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
-barplot(rain2013$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2013 Rainfall")
-
 diffs <- (simRainfall2013 - rain2013$Rainfall.amount..millimetres.)
 diffs <- diffs[diffs != 0]
 posDifs <- which(diffs > 0)
@@ -666,5 +670,31 @@ rankNegDiff
 
 mean(diffs)
 ```
+
+
+
+
+```{r}
+monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- monthList['Month']
+
+sumRainfall = 0
+
+for(i in c(1:100)){
+  set.seed(i)
+  tempRainfall <- generateRainfallSeasonal(monthList)
+  sumRainfall <- sumRainfall + sum(tempRainfall)
+}
+meanRainfallSim <- sumRainfall/100
+meanRainfallSim
+
+meanRainfallActual <- sum(train10_data$Rainfall.amount..millimetres.)/10
+meanRainfallActual
+```
+
+
+
+
+
 
 
