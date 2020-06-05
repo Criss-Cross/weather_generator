@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
 # Problem statement and background:
+ 
 
 # Brief literature review:
 
@@ -31,14 +32,23 @@ The data for use in this project is sourced from the Bureau of Meteorology (BOM)
 #### Critical Analysis
 The Markov chain probabilities for continued rain can be used to “modify” or add a constant to predicted rainfall. Looking at the rainfall data, longer successive periods of rain have higher average rainfalls per day for the period, and so using the higher chance of rain for the next day (modified) to also add a modifier to the predicted amount of rainfall may be useful. As was performed by Mehrotra and Sharma (Mehrotra & Sharma, 2007), it may be useful to modify it to a semi-parametric model, and include aggregate conditioning variables to better model the longer scale monthly and yearly weather conditions, and make use of kernel density procedures to better model the likely non-independent wet days and their corresponding rainfall amounts.
 
-# Methodology and Data
+####References:
 
-##### Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
+Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall occurrence at Tel Aviv. Q.J.R. Meteorol. Soc., 88: 90-95. doi:10.1002/qj.49708837511.  
+
+Miller, D. K. and Homan, S. M. (1994), Determining Transition Probabilities: Confusion and Suggestions. Medical Decision Making., 14: 52-58. 
+
+Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of stochastic weather models. Progress in Physical Geography., 23: 329-357. 
+
+####Methodology and Data
+
+#####Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
 1. Produce markov chain model on overall data
 2. Split data based on Wet vs Dry Seasons
 3. Split data based on Seasons
 
-##### Overall Methodology:
+
+#####Overall Methodology:
 
 1. Data Cleaning:
 - Deleting a few extra columns not required for analysis.
@@ -80,15 +90,10 @@ Main
 - Also produce boxplots for actual dataset. 
 - Show simulated boxplots and actual boxplots side by side to see how well the markov chain simulated the overall amount of rainfall for each season. 
 
-# References:
 
-Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall occurrence at Tel Aviv. Q.J.R. Meteorol. Soc., 88: 90-95. doi:10.1002/qj.49708837511.  
+ 
 
-Miller, D. K. and Homan, S. M. (1994), Determining Transition Probabilities: Confusion and Suggestions. Medical Decision Making., 14: 52-58. 
-
-Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of stochastic weather models. Progress in Physical Geography., 23: 329-357. 
-
-Bureau of Meterology. (2013), Climate Data Online. Australian Government Bureau of Meteorology. IDCJAC0009_009225_1800_Data.csv
+Link to data source: 
 http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
 
 # Preliminary Setup 
@@ -96,15 +101,16 @@ http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_typ
 # Reading in the data from the csv file
 data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
 weather_data <- data
-weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetres.) == FALSE),] # Excludes rows with no rainfall record made 
+weather_data <- weather_data[which(is.na(weather_data$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made 
 ```
 
 ```{r}
-weather_data$date <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # Creating a column that contains the date for easy indentification
+weather_data$date <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
 ```
-
+#Code rationale
+In order to generate a markov chain, we must first calculate the probability of the transition states. Since our data contains the rainfall amounts for each day, we need to convert these into a recording of whether the day was wet or dry, which will refer to as the days 'states', and the state transition, for example, dry state to wet state, in which it did not rain the previous day, and rained on that day. The first thing we did is create a function to classify a day's state as dry if it had <1mm of rainfall, and wet if it has >1mm of rainfall, as per the methodology. This allows us to create a new column in the data for the state depending on the rainfall column. We created a new column in the weather data for the state.
 ```{r}
-# Function to categorise day as either 'wet' or 'dry' for the Markov Chain functions
+# function to categorise day as either 'wet' or 'dry' for the Markov Chain functions
 state <- function(x){
   stateList <- c()
   for(ii in 1:length(x)){
@@ -119,11 +125,15 @@ state <- function(x){
 }
 weather_data$state <- state(weather_data$Rainfall.amount..millimetres.)
 ```
-
+We can see below what this results in.
 ```{r}
-# Function establishing Markov Chain transition state. Establishing the relationship between the rainfall of a given day and the day before it.
+head(weather_data[,c('Rainfall.amount..millimetres.','state')], 10)
+```
+Now that we have the state for every observation in the dataset, we can now find the transition states. We do this by looping through the dataset, and record the transition state as the state of the previous observation to the new observation. This results in four possible states: Dry to dry, dry to wet, wet to wet, and wet to dry. The first observation's transition state is not found as there is no state from the day before to calculate it. We then record this as a column of the dataset.
+```{r}
+# function establishing Markov Chain transition state. Establishing the relationship between the rainfall of a given day and the day before it.
 transitionState <- function(x){
-  transitionStateList <- c('') # Can't find transition state of first observation.
+  transitionStateList <- c('') #can't find transition state of first observation
   for(i in 2:length(x)){
     if(x[i] == "dry"){
       if (x[i-1] == "dry"){
@@ -146,13 +156,17 @@ transitionState <- function(x){
 }
 weather_data$transitionState <- transitionState(weather_data$state)
 ```
-
+The transition states can be seen below.
 ```{r}
-train_data <- subset(weather_data, Year >= 2010) # Only look at the most recent, relevant data.
+head(weather_data[,c('Rainfall.amount..millimetres.','state', 'transitionState')], 10)
+```
+Data was restricted from the period of after 2010. Since the main use of the data is to find the probability of the transition states, and average rainfalls for use in the generator later, we did not need a very large amount of data. Reducing this to 10 years gives a large enough data size, while ensuring the data is more accurate to current weather conditions, which is important as they may have differed due to climate change. Recent data may also be more accurate due to better data collection methods. Below we can see how the rainfall varies by each month and year. There is the most rainfall around winter, as expected, and less around summer. We also find that the rainfall per year varies a lot, from around 500ml to over 800ml in 2010 and 2011, respectively. Since the year of 2020 was not complete at the time of data collection, the bar plot for 2020 is not complete.
+```{r, warning=FALSE}
+train_data <- subset(weather_data, Year >= 2010) # only look at the most recent, relevant data.
 library(ggplot2)
 library(RColorBrewer)
 
-# Explorative plots investigating the distribution of rainfall across months and years
+# explorative plots investigating the distribution of rainfall across months and years
 
 # Plotting the rainfall data (grouped by years and months)
 # Distribution of rainfall by month (segmented by year)
@@ -177,10 +191,11 @@ ggplot(train_data, aes(x = factor(Year), y = Rainfall.amount..millimetres., fill
 ```{r}
 table(train_data$Month, train_data$Year) # only four months of data in 2020
 ```
-
+We need to calculate the probabilities of the four transition states in order to make a markov chain to generate weather data. In the first basic model we did this with no respect to month or season, generated overall probabilities. To do this we simply divide the amount of wet to wet transition states by the number of wet to wet plus wet to dry, to find the wet to wet transition probability. We can find find the wet to dry probability as one subtract this probability, as they sum to do. Similarly, we find the probabilities of dry to dry and dry to wet. This ended up being a 0.506 probability of wet to wet, and 0.872 for dry to dry. That is, if it rained the previous day, there is a 50.6% chance it will rain today, and if it did not rain yesterday, a 87.2% chance it will not rain today.
 ```{r}
 #Calculating transition state probabilities, in general (no respect to month or season)
 weatherTable <- table(train_data$transitionState)
+weatherTable
 
 probWetToWet = weatherTable['WetToWet'] / (weatherTable['WetToWet'] + weatherTable['WetToDry'])
 probWetToWet
@@ -188,14 +203,13 @@ probWetToWet
 probDryToDry = weatherTable['DryToDry'] / (weatherTable['DryToDry'] + weatherTable['DryToWet'])
 probDryToDry
 ```
-
+This first basic generator takes an integer for how many days to simulate as input, and returns a list of rainfall amounts for each day. If the current state is dry, then if a random number between 0 and 1, generated by the runif() function, is below the probability of the dry to dry transition state, we keep the current state as dry, if not, we update the state to wet. Similarly, if the current state is wet, we keep it as wet or update it to dry depending on a random chance along with the probability calculated before. If the new state is dry, we record the rainfall as 0ml. If the new state is wet, we generate a random draw from the log-normal distribution as the rainfall amount. The rainfall amount is given by: 5.66*exp(rnorm(1)). We multiply by 5.66 as the expected value of exp(rnorm(1)) is around 1.648, and needs to generate rainfall with the average being the mean of the rainfall of the days when it does rain, which is 9.32ml in this case. 
 ```{r}
 #Basic generator (No seasonal variation)
 
-currentState = "dry" # Years start with very little rain, so more likely to start dry
-
 #calculated above
 generateRainfallBasic <- function(genLength){
+  currentState = "dry" # Years start with very little rain, so more likely to start dry
   rainAmountList <- c()
   for (i3 in 1:genLength){
     if (currentState == "dry"){
@@ -216,7 +230,7 @@ generateRainfallBasic <- function(genLength){
     }
                                       #generating amount of rainfall if state is wet, else 0
     if (currentState == "wet"){
-      rainAmount <- 5*exp(rnorm(1))
+      rainAmount <- 5.66*exp(rnorm(1))
       rainAmountList <- c(rainAmountList, rainAmount)
     }
     else{
@@ -226,21 +240,23 @@ generateRainfallBasic <- function(genLength){
   return(rainAmountList)
 }
 ```
+Log-normal is used as it produces a very similar shape to the actual data. Importantly, it produces some results that are far off the bulk of the data, as found in the actual data. Originally, we used the exponential distribution, which did not produce this. As can be seen, similar means are produced from the simulated and actual rainfall data.
 ```{r}
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
-p1 <- 5*exp(rnorm(732))
-p1 <- p1[p1>1]
-hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distribution")
+par(mfrow=c(1,2))
+p1 <- 5.66*exp(rnorm(732))
+hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distribution", xlab = "Rainfall (ml)")
 
 p2 <- train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1]
-hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "actual distribution")
+hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Actual distribution", xlab = "Rainfall (ml)")
 
+mean(p1)
+mean(p2)
 ```
-
-```{r, fig.height=10}
+Testing the basic generator, it appears that the amount of rainfall when it rained approximated the actual case very well. However, comparing 3761 days of simulated rainfall compared to actual rainfall, we can see that the actual rainfall comes more in waves, compared to the simualted rainfall here. This is because it rains more in winter months, meaning that the transition state probabilities are different for each month or season.
+```{r, fig.height=8}
 #Basic generator tests
 testRainfall = generateRainfallBasic(3761)
-plot(testRainfall)
 
 par(mfrow=c(2,1))
 hist(train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1 & train_data$Rainfall.amount..millimetres.<50], xlab = "Actual Rainfall (mm)", main = "Actual Rainfall Frequency Histogram")
@@ -250,9 +266,10 @@ par(mfrow=c(2,1))
 barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
 barplot(testRainfall, ylim = c(0,80), main = "Simulated Data", ylab = "Rainfall (mm)", xlab = "Index")
 ```
-
+Therefore, we need to change the probability for the state changes in the generator depending on the month of the year. To do this we created a data frame to count the number of occurences of transition states for each month. We initially filled the data frames all with zeroes, and increased the count by one for every occurence.
 ```{r}
 #Calculates the transition probabilities for each month
+
 transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #Initialises 12x4 frame filled with zeroes (4 columns for each transition state, 12 rows for each month)
 names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet')
 
@@ -264,6 +281,10 @@ for (i4 in 1:dim(train_data)[1]){
 }
 ```
 
+```{r}
+head(transitonStatesMonthsFrame, 10)
+```
+We then create a copy of that data frame and calculate the probabilities just as before. This results in a data frame with the transition probabilities for each month.
 ```{r}
 #Calculates the transition state probabilities for each month in the data frame
 probTransitonStatesMonthsFrame <- transitonStatesMonthsFrame
@@ -280,6 +301,10 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){
 ```
 
 ```{r}
+head(probTransitonStatesMonthsFrame, 10)
+```
+Not only is it more likely to rain in some months than others, but there is also a different average amount of rainfall when it does rain. We tested to see if there's a different average rainfall for wet to wet vs dry to wet transition states, however, the resulting wilcoxon test did not show enough evidence to support this, so it was not added in the final model. A kruskal-wallis test of the average rainfall when it did rain (not total rainfall) for each month revealed sufficient evidence to conclude a difference for the month. The non-parametric tests were used as the rainfall data was not normally distributed.
+```{r}
 #testing average rainfall when its rains in each month, and for wettowet vs drytowet transitions.
 test_w2w <- train_data$Rainfall.amount..millimetres.[train_data$transitionState == "WetToWet"]
 test_d2w <- train_data$Rainfall.amount..millimetres.[train_data$transitionState == "DryToWet"]
@@ -292,13 +317,8 @@ test_rainfallPerMonth <- train_data[train_data$state == "wet",c(4,6)]
 kruskal.test(Rainfall.amount..millimetres. ~ Month, data = test_rainfallPerMonth)
 #p-val = 0.00016, therefore difference between average rainfall for each month
 
-rm(test_d2w)
-rm(test_w2w)
-
-rm(test_rainfallPerMonth)
-
 ```
-
+The average rainfall when it rained for each month was calculated, to be used in the more advanced generator. This was done by storing rainfall for wet days in a nested list and finding the mean.
 ```{r}
 #calculating the mean rainfall when it rains for each month, to change how much it rains according to the generator later on. Limited to less than 60 mls as the dataset is not large enough for large rainfall amounts (such as 114ml in feburary) to not throw the mean off.
 rainMonthData <- c()
@@ -311,20 +331,19 @@ for (i in 1:12){
 rainfallAvgMonth <- sapply(rainMonthData, mean)
 
 ```
+
 ```{r}
-plot(c(1:12), rainfallAvgMonth, type = "l", xlab = "Month", ylab = "Average Rainfall (mm)")
+plot(c(1:12), rainfallAvgMonth, type = "l", xlab = "Month", ylab = "Average Rainfall (mm)", main = "Average rainfall for wet days for each month")
 ```
 
-
+As can be seen, the transition states vary for each month.
 ```{r}
 #How the transition state probabilities vary for each month
 plot(probTransitonStatesMonthsFrame$DryToDry, ylim = c(0,1), xlab = "Month", main = "'dry to dry' transition state probability", type = 'l', ylab = "Probability")
 plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", main = "'wet to wet' transition state probability", type = 'l', ylab = "Probability")
 ```
+The new updated weathere generator uses the same old generator code for the most part, with a few changes. We now change the probability of the transitions depending on the month of the observation. This requires that we now input a data frame with a month column to calculate this. The rainfall generated on wet days is also updated to vary per month. 
 ```{r}
-
-#weather generator accounting  for seasonal variation of transition states 
-#yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
 
 #Weather generator accounting  for seasonal variation of transition states or something i hope
 #Yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
@@ -354,7 +373,7 @@ generateRainfallSeasonal <- function(input){
                                       #generating amount of rainfall if state is wet, else 0
     if (currentState == "wet"){
       
-      #rainAmount <- 5*exp(rnorm(1)) #now log-normal dist, 5 used because is close to mean of weather_data's / the mean of what exp(rnorm(1)) is by default /// Old Version 
+      #rainAmount <- 5.66*exp(rnorm(1)) #now log-normal dist, 5 used because is close to mean of weather_data's / the mean of what exp(rnorm(1)) is by default /// Old Version 
       rainAmount <- rainfallAvgMonth[input[i5, 'Month']]*exp(rnorm(1))/1.648 #average of exp(rnorm(1)) is ~1.648, so we divide by that so the average of each month will just be the actual average calculated from rainfallAvgMonth.
       
       rainAmountList <- c(rainAmountList, rainAmount)
@@ -373,16 +392,16 @@ inputSeasonalRainfall <- dplyr::select(train_data, 'Year', 'Month', 'Day') #usin
 
 testSeasonalRainfall = generateRainfallSeasonal(inputSeasonalRainfall)
 ```
-
+Simulated rainfall now follows a more seasonal pattern, as seen in the original data. Since we have used the original datas transition probabilities and rainfall averages, we expect that our model can give similar results to the original data.
 ```{r}
 par(mfrow=c(2,1))
 barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
 
-# Using the last 10 years data (2009-2018) to predict next (2019)
+# use 10 years data (2009-2018) to predict next (2019)
 ```{r}
-#comparing log-normal against actual data, veery close fit, will use log-normal for rainfall sim
+#comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
 p1 <- 5*exp(rnorm(732))
 p1 <- p1[p1>1]
 hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distribution")
@@ -540,22 +559,20 @@ RainfallWeeklyDiff$`Rainfall diff (mm)` <- diff(RainfallWeekly$`Rainfall (mm)`) 
 ```{r, fig.height= 14}
 # plot first 700 weeks first against the difference in rainfall, and then the rainfall per week
 par(mfrow = c(4,1))
-plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b", main = "Difference in Rainfall (mm) across weeks")
-plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
-plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b", main = "Difference in Rainfall (mm) across weeks")
-plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
+plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 
-
-# the seasonal trends can be clearly seen through these plots, however there does not seem to be any calear patterns in the wet weeks. As such, a simulator using weeks will not be explored.
 ```
 
 ```{r, fig.height= 14}
 # plot second 700 weeks first against the difference in rainfall, and then the rainfall per week
-#par(mfrow = c(4,1))
-#plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-#plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-#plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-#plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+par(mfrow = c(4,1))
+plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
+plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 ```
 
 ```{r}
@@ -643,11 +660,8 @@ set.seed(12345)
 monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-```
 
-
-```{r}
-simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # Removing day 278 and day 353 data from testSeasonalRainfall10 because we are missing data.
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
 
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
@@ -659,7 +673,6 @@ sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
 sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
 
 ```
-
 ```{r}
 set.seed(347876)
 
@@ -678,7 +691,6 @@ sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
 sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
 
 ```
-
 ```{r}
 set.seed(3456789)
 # using month probabilites generate one years worth of data 
@@ -706,7 +718,9 @@ sum(train10_data$Rainfall.amount..millimetres.)/10 # /10 to get average of 10 ye
 sum(rain2019$Rainfall.amount..millimetres.)
 ```
 
-```{r, results = 'hide'}
+
+
+```{r}
 median(simRainfall2019)
 median(rain2019$Rainfall.amount..millimetres.)
 
@@ -715,10 +729,8 @@ median(rain2019$Rainfall.amount..millimetres.)
 # 2019 is a non leap year so February will have 28 days
 #October 5th and December 19th are missing, so we remove them
 month_result <- which(rain2019$date == "4-10-2019" | rain2019$date=="18-12-2019")
-```
+simRainfall2019 <- testSeasonalRainfall10[-c(month_result[1]+1, month_result[2]+1)]
 
-```{r}
-simRainfall2019 <- testSeasonalRainfall10[-c(month_result[1]+1, month_result[2]+1)] #Removing 4/10/19 and 18/12/19 because these dates are missing from the data.
 # Test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
 wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T, alternative = "t")
 
@@ -737,6 +749,10 @@ rain2013 <- subset(weather_data, Year == 2013)
 simRainfall2013 <- generateRainfallSeasonal(monthList)
 wilcox.test(simRainfall2013, rain2013$Rainfall.amount..millimetres., paired = T, conf.int = T, conf.level = 0.95)
 
+par(mfrow = c(2,1))
+barplot(simRainfall2013, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
+barplot(rain2013$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2013 Rainfall")
+
 diffs <- (simRainfall2013 - rain2013$Rainfall.amount..millimetres.)
 diffs <- diffs[diffs != 0]
 posDifs <- which(diffs > 0)
@@ -750,31 +766,5 @@ rankNegDiff
 
 mean(diffs)
 ```
-
-
-
-
-```{r}
-monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
-monthList <- monthList['Month']
-
-sumRainfall = 0
-
-for(i in c(1:100)){
-  set.seed(i)
-  tempRainfall <- generateRainfallSeasonal(monthList)
-  sumRainfall <- sumRainfall + sum(tempRainfall)
-}
-meanRainfallSim <- sumRainfall/100
-meanRainfallSim
-
-meanRainfallActual <- sum(train10_data$Rainfall.amount..millimetres.)/10
-meanRainfallActual
-```
-
-
-
-
-
 
 
