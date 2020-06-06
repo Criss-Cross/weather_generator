@@ -537,6 +537,7 @@ year <- subset(weather_data, Year == 2013)
 barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2013 Rainfall")
 rm(year)
 ```
+To check if the 
 
 # Examining for patterns
 ```{r}
