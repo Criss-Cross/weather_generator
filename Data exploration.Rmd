@@ -434,7 +434,7 @@ barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfal
 ```
 Looking at the simulated rainfall against the actual 2019 rainfall, the simulation has a very similar wet dry cycle to the actual data, even if the amount of rainfall during the wet seasons is not an accurate depiction. Aside from the exact amount of rain, the simulation looks to be a fairly good prediction of 2019. 
 
-To check if the simulated year is a good prediction of 2019 specifically, we plotted it against several years that were used to train it. As the simulation was created using data from those years, it should show some resemblance, but hopefully the resemblance will be less than or equal to the similarity of the simulation with the 2019 data, as 
+To check if the simulated year is a good prediction of 2019 specifically, we plotted it against several years that were used to train it. As the simulation was created using data from those years, it should show some resemblance, but if the simulated rainfall is predcintg 2019 specifically, the similarity should be less distinct.
 ```{r}
 # check other years for comparison
 par(mfrow = c(3,2))
@@ -451,7 +451,7 @@ year <- subset(weather_data, Year == 2013)
 barplot(year$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2013 Rainfall")
 rm(year)
 ```
-T
+As shown by the plots above, the simulated rainfall is roughly similar to other years, particularly 2007 and 2013 which have a similar wet dry cycle. However, the similarity does not appear to be as distinct, at least visually.
 
 # Examining for patterns
 ```{r}
