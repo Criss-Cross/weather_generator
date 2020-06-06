@@ -41,16 +41,16 @@ Weather data was retrieved from the Bureau of Meteorology, for the Perth Metro S
 Our methodology is broken down as follows:
 
 1) Data manipulation and gathering
--Modify dataset to calculate transition state probabilities
--Calculate transition state probabilities and average rainfalls by month
--Test rainfall variation by month and year
+- Modify dataset to calculate transition state probabilities
+- Calculate transition state probabilities and average rainfalls by month
+- Test rainfall variation by month and year
 
 2) Produce markov chain model
--Generate a wet or dry day depending on previous day and transition state probability for the month
--Generate rainfall amount according to log-normal distribution
+- Generate a wet or dry day depending on previous day and transition state probability for the month
+- Generate rainfall amount according to log-normal distribution
 
 3) Testing
--Sean please write something here
+- Sean please write something here
 
 # Code rationale 
 ```{r}
@@ -518,7 +518,7 @@ rm(rainSort_2019)
 rain2019 <- subset(weather_data, Year == 2019)
 length(rain2019$Rainfall.amount..millimetres.)
 length(testSeasonalRainfall10)
-# function to return the sum of ranks of difference (w+ and w-) that are part of the Wilcoxon signed rank calculations
+# Function that returns the sum of ranks of difference (w+ and w-) that are part of the Wilcoxon signed rank calculations
 returnRanks <- function(simulated, actual){
   diffs <- (simulated - actual)
   diffs <- diffs[diffs != 0]
@@ -531,38 +531,37 @@ returnRanks <- function(simulated, actual){
 }
 ```
 
-```{r}
+```{r, results="hide"}
 table(rain2019$Month)
 # To perform the Wilcoxon Signed Rank test we must have paired data, so we have to find the extra dates in testSeasonalRainfall10 (note: 2019 is a non leap year) and remove them.
 # Upon review we find that there are days missing from October and December.
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results="hide"}
 table(rain2019$Day)
-# one month is missing a day 5, and another is missing a day 19 (both 11 when should be 12)/
+# One month is missing a day 5, and another is missing a day 19 (both 11 when should be 12)
 temp <- subset(rain2019, Day == 5)
 temp$Month # 5th of October missing
 temp <- subset(rain2019, Day == 19)
 temp$Month # 19th of December missing
 rm(temp)
 which(rain2019$date == "4-10-2019") # find what row the day before 5-10-2019 is
-# thereforer 5-10-2019 would be row 278 (277+1)
+# Therefore 5-10-2019 would be row 278 (277+1)
 which(rain2019$date == "18-12-2019") # find what row the day before 5-10-2019 is
-# thereforer 5-10-2019 would be row 353 (351+2). Add two as both 5th october and 19th december are missing
+# Therefore 5-10-2019 would be row 353 (351+2). Add two as both 5th october and 19th december are missing
 ```
+
 ```{r}
-# after finding the days that need to be removed we find that the days are day 278 and 353 from testSeasonalRainfall10
+# We find that the days are day 278 and 353 from testSeasonalRainfall10
 simRainfall2019 <- testSeasonalRainfall10
 ```
 
 ```{r}
 set.seed(102343656)
-
-# get a testing 
-monthList <- subset(weather_data, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- subset(weather_data, Year == 2019) # A year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from testSeasonalRainfall10
+simRainfall2019 <- testSeasonalRainfall10 # Removing day 278 and day 353 data from testSeasonalRainfall10
 ```
 
 ```{r}
@@ -573,64 +572,49 @@ wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T,
 # manual calculation of Wilcoxon signed rank values 
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
-sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
-sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
+cat(sumRanks[1], "is the sum of the ranks of the positive differences")
+cat(sumRanks[2], "is the sum of the ranks of the negative differences")
 
 # rankPosDiff (the sum of the ranks of the differences where the simulated data is greater than the actual) is 7414. rankNegDiff (the sum of the ranks of the the differences where the actual is greater than the simulated) is 5147. rankPosDiff is quite a bit larger than rankNegDiff
 ```
-
-```{r}
-# to confirm the results of the first Wilcoson signed rank test, repeat with 3 different sets of simulated rainfall
+To confirm the results of the first Wilcoxon signed rank test, we repeat the code and test above with 3 different sets of randomised simulated rainfall.
+```{r, echo=FALSE}
 set.seed(12345)
-
-# using month probabilites generate one years worth of data 
-monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- subset(weather_data, Year == 2011)
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-
-simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
-
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
-# The p-value is 0.1981, indiciating that there is not a significant difference between the simulated data and the actual data
-
-# manual calculation of Wilcoxon signed rank values 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
-sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
-sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
-
+cat(sumRanks[1], "is the sum of the ranks of the positive differences")
+cat(sumRanks[2], "is the sum of the ranks of the negative differences")
 ```
-```{r}
+
+```{r, echo=FALSE}
 set.seed(347876)
-# using month probabilites generate one years worth of data 
-monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- subset(weather_data, Year == 2011) 
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-
-simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
-
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] 
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
-# manual calculation of Wilcoxon signed rank values 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
-sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
-sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
+cat(sumRanks[1], "is the sum of the ranks of the positive differences")
+cat(sumRanks[2], "is the sum of the ranks of the negative differences")
 ```
 
-```{r}
+```{r, echo=FALSE}
 set.seed(3456789)
-# using month probabilites generate one years worth of data 
-monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- subset(weather_data, Year == 2011)
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
-
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
-# manual calculation of Wilcoxon signed rank values 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
-sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
-sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
+cat(sumRanks[1], "is the sum of the ranks of the positive differences")
+cat(sumRanks[2], "is the sum of the ranks of the negative differences")
 ```
 
 ```{r}
@@ -684,8 +668,8 @@ rankPosDiff
 rankNegDiff
 mean(diffs)
 ```
-
-# Conclusion:
+# Conclusion and summary of the findings:
+In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, 
 
 # References:
 
