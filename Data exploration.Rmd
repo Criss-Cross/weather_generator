@@ -221,6 +221,28 @@ par(mfrow=c(2,1))
 barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
 barplot(testRainfall, ylim = c(0,80), main = "Simulated Data", ylab = "Rainfall (mm)", xlab = "Index")
 ```
+We need to have a way to test how the frequency of raining changes. This function returns a list of how many days between each time it rained.
+```{r}
+daysBetweenRain <- function(input){
+  returnList <- c()
+  currentLength <- 0
+  for (i in input){
+    if (i<1){
+      currentLength <- currentLength + 1
+    }
+    else{
+      returnList <- c(returnList, currentLength)
+      currentLength <- 0
+    }
+  }
+  return(returnList)
+  }
+```
+We can see below a histogram of days between rainfall. We find that the basic generator differs greatly from the real rainfall, with less on the tail ends of around 0 days and >50 days. This is because a lack of seasonal variability that exists in the real life cases decreases the chances that we will have a long streak, as seen in summer in real life, or a short streak, as common in winter. For an accurate model, we expect that the mean and standard deviation of the two days between rainfall for the real and simulated case be similar.
+```{r}
+hist(daysBetweenRain(train_data$Rainfall.amount..millimetres.)[train_data$Rainfall.amount..millimetres.>-1], main = "Histogram of days between rainfall (Actual rainfall)", breaks = 100, xlab = "Days between rainfall", ylim = c(0,500))
+hist(daysBetweenRain(testRainfall)[daysBetweenRain(testRainfall)>-1], main = "Histogram of days between rainfall (Simulated rainfall)", breaks = 100, xlab = "Days between rainfall", ylim = c(0,500))
+```
 
 Therefore, we need to change the probability for the state changes in the generator depending on the month of the year. To do this we created a data frame to count the number of occurences of transition states for each month. We initially filled the data frames all with zeroes, and increased the count by one for every occurence.
 We then create a copy of that data frame and calculate the probabilities just as before. This results in a data frame with the transition probabilities for each month.
@@ -350,6 +372,19 @@ par(mfrow=c(2,1))
 barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
+Below shows the testing of the days between rainfall for the updated generator. As we can see, the distributions are now much closer than previously, by accounting for seasonal variability. There are now multiple stretches of no rain for more than 50 days, as seen in the actual data. There is also a similar amount of 0 days between rainfall. This is a significant improvement that increases the realisticness of the results.
+```{r}
+hist(daysBetweenRain(train_data$Rainfall.amount..millimetres.)[train_data$Rainfall.amount..millimetres.>-1], main = "Histogram of days between rainfall (Actual rainfall)", breaks = 100, xlab = "Days between rainfall", ylim = c(0,500))
+hist(daysBetweenRain(testSeasonalRainfall)[daysBetweenRain(testSeasonalRainfall)>-1], main = "Histogram of days between rainfall (Simulated rainfall)", breaks = 100, xlab = "Days between rainfall", ylim = c(0,500))
+```
+We see that a wilcoxon test reveals no evidence to suggest that the medians of the simulated and actual days between rainfall are different. The means and standard deviations are also similar. Therefore, this model accurately generates rainfall generator according to this parameter.
+```{r}
+wilcox.test(daysBetweenRain(testSeasonalRainfall), daysBetweenRain(train_data$Rainfall.amount..millimetres.))
+mean(daysBetweenRain(testSeasonalRainfall)); mean(daysBetweenRain(train_data$Rainfall.amount..millimetres.))
+
+sd(daysBetweenRain(testSeasonalRainfall)); sd(daysBetweenRain(train_data$Rainfall.amount..millimetres.))
+```
+
 
 ```{r}
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
