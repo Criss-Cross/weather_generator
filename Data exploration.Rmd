@@ -18,7 +18,6 @@ One of the very early works on probabilistic modelling of rainfall was done by Q
 In this project we will be using a two-state Markov chain to predict the rainfall occurrences and amount for the metropolitan areas in Australia. Before beginning however, note that a weather generator is different to a forecast because it is a stochastic model where the simulated weather sequences will not be expected to be the same as the future or past weather observation made using a forecast. In other words, a weather generator mimics weather data but it never predicts the weather.
 
 In an article published in the quarterly Journal of the Royal Meteorological Society in 1962, Gabriel and Neumann first recognised that the frequency-distributions for wet and dry spells created by that point by Williams (1952) and Longley (1953) could be modelled through a Markov chain. They created a statistical model modelling daily rainfall occurrence in Tel Aviv using a first-order Markov chain probability model, under the assumption that whether it will rain or not on the next day will depend on whether rain occurred on the current day. 
-
 Another study conducted by Chowdhury and Lockart (2017) also proposed using a two-state Markov chain to create a stochastic rainfall model focusing on daily rainfall and employed a gamma distribution to model the amount of rain for “wet” days. The model was run multiple times and calculated the mean and standard deviation of the rainfall amount to generate the expected rainfall, and the occurrence of rainfall were modelled using the Markov chain.
 
 Markov chains have also been used with semi-parametric models that make use of aggregate conditioning variables that can be chosen, to better represent larger time period monthly and annually occurring rainfall patterns. This is particularly useful, as basic two-state markov models, while accurate for short-term weather conditions, have typically underrepresented the overall variance across month and year-based time periods (Mehrotra & Sharma, 2007). 
@@ -476,7 +475,7 @@ Looking at the barplots of the simulated data (top) and the actual data (bottom)
 
 # Using the data from the previous 10 years (2009-2018) to predict the weather for the next year (2019)
 
-Predicting a randomly selected 20% of the weather data was unsuccesful, the simulated data and the actual data were significantly different, and by a comfortable margin. To try to increase the accuracy of the simulated data, we will increase the amount of training data and attempt to predict a specific year, instead of a randomly selected bunch of days. Increasing the amount of training data should increase the accuracy of the probabilites, and reduce the impact of outlying observation; and predicting a specific year should give the seasonal function of the generator more power. 
+Predicting a randomly selected 20% of the weather data was unsuccesful, the simulated data and the actual data were significantly different, and by a comfortable margin. To try to increase the accuracy of the simulated data, we will increase the amount of training data and attempt to predict a specific year, instead of a randomly selected bunch of days. Increasing the amount of training data should increase the accuracy of the probabilites, and reduce the impact of outlying observation; and predicting a specific year should give the seasonal function of the generator more power. The next test will be predicting the rainfall of 2019 using 10 years of data from 2009-2018. To achieve this, the seasonal generator was retrained on all the rainfall data from those 10 years, and a simulation the lengh of one, non leap, year was generated. 
 
 ```{r}
 train_data <- subset(weather_data, Year >= 2010)
@@ -495,8 +494,8 @@ for (i4 in 1:dim(train10_data)[1]){ #making dataframe with count of each transit
   tempMonth <- train10_data[i4, 'Month']
   transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
 }
-```
-```{r}
+
+
 #also copied from earlier
 probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
 for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
@@ -509,9 +508,8 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs f
     
   probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
 }
-```
 
-```{r}
+
 set.seed(10356)
 
 # get a testing 
@@ -526,6 +524,8 @@ par(mfrow = c(2,1))
 barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
 barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2019 Rainfall")
 ```
+Looking at the simulated rainfall against the actual 2019 rainfall, the simulation has a very similar wet dry cycle to the actual data, even if the amount of rainfall during the wet seasons is not an accurate depiction. Aside from the exact amount of rain, the simulation looks to be a fairly good prediction of 2019. 
+
 ```{r}
 # check other years for comparison
 par(mfrow = c(3,2))
