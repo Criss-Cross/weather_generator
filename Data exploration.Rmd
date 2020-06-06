@@ -561,22 +561,20 @@ simRainfall2019 <- testSeasonalRainfall10
 ```
 
 ```{r}
-<<<<<<< HEAD
 set.seed(102343656)
 monthList <- subset(weather_data, Year == 2019) # A year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
 simRainfall2019 <- testSeasonalRainfall10 # Removing day 278 and day 353 data from testSeasonalRainfall10
 ```
-=======
+
+```{r}
 set.seed(40565)
 
-# get a testing 
 monthList <- subset(weather_data, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
 simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from testSeasonalRainfall10
->>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 # test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
@@ -596,16 +594,13 @@ set.seed(12345)
 monthList <- subset(weather_data, Year == 2011)
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-<<<<<<< HEAD
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
-=======
 
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
 
 WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 WP$p.value
->>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 cat(sumRanks[1], "is the sum of the ranks of the positive differences")
@@ -617,16 +612,13 @@ set.seed(347876)
 monthList <- subset(weather_data, Year == 2011) 
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-<<<<<<< HEAD
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] 
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
-=======
 
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
 
 WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 WP$p.value
->>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 cat(sumRanks[1], "is the sum of the ranks of the positive differences")
@@ -638,15 +630,12 @@ set.seed(3456789)
 monthList <- subset(weather_data, Year == 2011)
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-<<<<<<< HEAD
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
-=======
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
 
 WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 WP$p.value
->>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 cat(sumRanks[1], "is the sum of the ranks of the positive differences")
@@ -705,7 +694,7 @@ rankNegDiff
 mean(diffs)
 ```
 # Conclusion and summary of the findings:
-In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results seemingly not being an accurate prediction of 2019 (as seen in the bar plots above), the simulation does generate rainfall data that is logically consistent with the median rainfall amounts.
+In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results seemingly not being an accurate prediction of 2019 (as seen in the bar plots above), the simulation does generate rainfall data that is logically consistent with the median rainfall amounts. # ADD MORE INFORMATION AND RESULTS HERE.
 
 # References:
 
