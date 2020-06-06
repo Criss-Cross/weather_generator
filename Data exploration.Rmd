@@ -392,6 +392,7 @@ barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Origin
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
 
+<<<<<<< HEAD
 ```{r}
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
 p1 <- 5*exp(rnorm(732))
@@ -402,20 +403,24 @@ p2 <- train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..milli
 hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "actual distribution")
 
 ```
+=======
+>>>>>>> 6841ae0ec8af9ab636beb8891fdb2c16cab584cc
 
 # Testing with sampling - Testing on a percentage of the data
+
+To properly test a predictive algorithm, you cannot test the algorithm on the data that you trained it on. In a practical application, the algorithm would be predicting events that have not yet transpired, so would need to train on data from the past. To test the predictive power of the generator, we split 10.5 years of weather data (2010 - 2020) into two groups through random sampling, a training set (80%) and a testing set (20%). The training data was used to retrain the seasonal generator, entailing calculating new probabilities of transitioning between states for each month, and calculating the mean rainfall for each month. As the generator was retrained on only a portion of the data, it can be tested on the remainder 
 
 ```{r}
 set.seed(100345)
 
-sampID <- sample.int(nrow(train_data), size = 0.5*nrow(train_data), replace = FALSE)
-train_data <- train_data[sampID,] # 50% of data for training
-test_data <- train_data[-sampID,] # 50% for testing
+sampID <- sample.int(nrow(train_data), size = 0.8*nrow(train_data), replace = FALSE)
+train_data <- train_data[sampID,] # 80% of data for training
+test_data <- train_data[-sampID,] # 20% for testing
 ```
 
 ```{r}
 #code to calculate transition probabilities for each month (copied from earlier)
-
+  # calculating the number of occurances of each trainsition state for eah month
 transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
 names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
 
@@ -424,11 +429,11 @@ for (i4 in 1:dim(train_data)[1]){ #making dataframe with count of each transitio
   tempMonth <- train_data[i4, 'Month']
   transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
 }
-```
 
-```{r}
-#also copied from earlier
+
+  #calculating the probabilites of each transition state for eachonth from the number of occurances 
 probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
+
 for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
   
   probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
@@ -439,20 +444,45 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs f
     
   probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
 }
+
+# calucating the new average rainfall for each month
+rainMonthData <- c()
+for (i in 1:12){
+  temp<- train_data$Rainfall.amount..millimetres.[train_data$state == "wet" & train_data$Month == i & train_data$Rainfall.amount..millimetres. < 60]
+  rainMonthData <- c(rainMonthData, list(temp))
+  rm(temp)
+}
+
+rainfallAvgMonth <- sapply(rainMonthData, mean)
 ```
+
+The newly calibrated seasonal generator was then used to predict the testing data. This just involved generating simulated rainfall with the same number of observations as the tesing data (about 2.6 years of rainfall, or 20% of the original 10.5 years)
 
 ```{r}
 #generate test data
-testSeasonalRainfall50 = generateRainfallSeasonal(train_data)
+testSeasonalRainfall20 = generateRainfallSeasonal(test_data) # generate a simulation with the same number of observations as test_data (20% of the total data)
 ```
 ```{r}
 par(mfrow = c(2, 1))
 
-barplot(testSeasonalRainfall50, ylab = "Rainfall (mm)", xlab = "index", main = "Simulated data")
+barplot(testSeasonalRainfall20, ylab = "Rainfall (mm)", xlab = "index", main = "Simulated data")
 barplot(test_data$Rainfall.amount..millimetres., ylab = "Rainfall (mm)", xlab  = "index", main = "Actual data")
 ```
+```{r}
+# Wilcoxon signed rank test
+WT <- wilcox.test(testSeasonalRainfall20, test_data$Rainfall.amount..millimetres., paired=T)
+print("Wilcoxon rank sum p-value")
+WT$p.value
+# paired student t test
+TT <- t.test(testSeasonalRainfall20, test_data$Rainfall.amount..millimetres., paired=T)
+print("t-test p-value")
+TT$p.value
+```
+Looking at the barplots of the simulated data (top) and the actual data (bottom), the two do not appear to be similar. While the simulation looks believeable, random with periods of intense rainfall, it does not resemble the actual data specifically. To test the similarity of the two data sets, both the non-parametric Wilcoxon Signed Rank Test and the parametric Student T Test were performed. Both tests are paired as each simulated day is attempting to predic a specific actual day. A non-parametric test was used in conjunction with a parametric test as from the distribution of the rainfall is not normal (as seen by earlier histograms). Both tests returned a p-value less than 0.005 at a significance of 0.05, and as such it can be concluded that the simulated rainfall and the actual rainfall are different. 
 
 # Using the data from the previous 10 years (2009-2018) to predict the weather for the next year (2019)
+
+Predicting a randomly selected 20% of the weather data was unsuccesful, the simulated data and the actual data were significantly different, and by a comfortable margin. To try to increase the accuracy of the simulated data, we will increase the amount of training data and attempt to predict a specific year, instead of a randomly selected bunch of days. Increasing the amount of training data should increase the accuracy of the probabilites, and reduce the impact of outlying observation; and predicting a specific year should give the seasonal function of the generator more power. 
 
 ```{r}
 train_data <- subset(weather_data, Year >= 2010)
@@ -488,10 +518,10 @@ for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs f
 ```
 
 ```{r}
-set.seed(10346)
+set.seed(10356)
 
-# using month probabilites generate one years worth of data 
-monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+# get a testing 
+monthList <- subset(weather_data, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
 ```
@@ -627,7 +657,17 @@ which(rain2019$date == "4-10-2019") # find what row the day before 5-10-2019 is
 which(rain2019$date == "18-12-2019") # find what row the day before 5-10-2019 is
 # thereforer 5-10-2019 would be row 353 (351+2). Add two as both 5th october and 19th december are missing
 
-simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
+simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from testSeasonalRainfall10
+```
+
+```{r}
+set.seed(102343656)
+
+# get a testing 
+monthList <- subset(weather_data, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- monthList['Month']
+testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from testSeasonalRainfall10
 ```
 
 ```{r}
