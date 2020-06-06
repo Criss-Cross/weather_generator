@@ -35,46 +35,28 @@ It is important to note that the current weather generator distinguishes between
 
 The data for use in this project is sourced from the Bureau of Meteorology (BOM).
 
-# Methodology and Data
+#Methodology and Data
 
-### Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
-1. Produce markov chain model on overall data
-2. Split data based on Wet vs Dry Seasons
-3. Split data based on Seasons
+Weather data was retrieved from the Bureau of Meteorology, for the Perth Metro Station. This source was chosen as the Bureau of Meteorology is an official government source with accurate and extensive data (http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num=009225). This dataset contained measurements from 1993 to 2020, with columns detailing product code, BOM station number, year, month and day, rainfall amount, period over which rainfall was measured, and quality. The product code and station number reference what type of data and the station it was collected from respectively, these have the same values for every entry. Period over which rainfall was measured takes on either a value of 1 day or N/A in the dataset. NA's appear more in earlier years, however there are still 11 occurences after 2010. It is assumed that NA values are actually 1 day as each row represents a day, and no values other than 1 exist. Quality is a categorial variables that takes on either 'Y' or 'N', indicating if the data has been quality controlled, with Y indicating that the observation had completed quality control and acceptable, N indicating that is was not yet completed the quality control process, and quality was not assured. Quality control had not been performed since 2008. Due to the simple nature of the dataset, and the amount of entries we had to work wih, we did not consider that using quality controlled data was important, if there were a few entries of rainfall misrecorded, it would not impact the results much. Even if all of the data was wrong, we could still use it to produce a markov chain and test it against the data. We decided to only use data since 2010, as it would still be a sizeable amount of data, while making it more manageable. Rainfall may have also changed over time due to climate change or rainfall collection methods, so more recent data may be better.
 
-### Overall Methodology:
+Our methodology is broken down as follows:
 
-##### Data Cleaning:
-- Deleting a few extra columns not required for analysis.
-- Ensure a consistent number of seasons are present
+1) Data manipulation and gathering
+-Modify dataset to calculate transition state probabilities
+-Calculate transition state probabilities and average rainfalls by month
+-Test rainfall variation by month and year
 
-##### Precipitation Presence
-1. Exploratory Data Analysis:
-- Producing boxplots to compare between different seasons.
-- Producing Spell length distribution.
-- Producing Image plots.
-2. Markov Chain:
-- Assigning 1 to days with rainfall greater than 1mm, and 0 otherwise.
-- Use rmarkovchain package to construct the transition matrix.
-3. Spell Length:
-- The days before transition 
-- Calculated using interarrival function.
-- Apply QQ diagnostic plots to compare simulated spell length to actual spell length shown in the dataset.
+2) Produce markov chain model
+-Generate a wet or dry day depending on previous day and transition state probability for the month
+-Generate rainfall amount according to log-normal distribution
 
-##### Rainfall amount (This follows the literature of George, Letha, and Jairaj 2016).
-1. Exploratory Data Analysis:
-- Create vector of summed rainfall.
-- Create new variables to store overall amounts of rainfall for actual dataset and simulated.
-- Produce more EDA for rainfall distribution amounts using line plots.
-- Also graph the total yearly rainfall.
-- Plot aggregates of the simulated rainfall amounts against the actual rainfall amounts.
-2. Main:
-- Produce boxplots for each simulated rainfall amount per season. 
-- Also produce boxplots for actual dataset. 
-- Show simulated boxplots and actual boxplots side by side to see how well the markov chain simulated the overall amount of rainfall for each season. 
+3) Testing
+-Sean please write something here
+-
+-
 
 
-# Preliminary Setup 
+#Code rationale 
 ```{r}
 # Reading in the data from the csv file
 data <-  read.csv("IDCJAC0009_009225_1800_Data.csv")
@@ -375,7 +357,7 @@ barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal"
 
 ```{r}
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
-p1 <- 5*exp(rnorm(732))
+p1 <- 5.66*exp(rnorm(732))
 p1 <- p1[p1>1]
 hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distribution")
 
