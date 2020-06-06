@@ -361,7 +361,7 @@ p2 <- train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..milli
 hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "actual distribution")
 ```
 
-# Testing with sampling - Testing on a percentage of the data
+## Testing with sampling - Testing on a percentage of the data
 
 To properly test a predictive algorithm, you cannot test the algorithm on the data that you trained it on. In a practical application, the algorithm would be predicting events that have not yet transpired, so would need to train on data from the past. To test the predictive power of the generator, we split 10.5 years of weather data (2010 - 2020) into two groups through random sampling, a training set (80%) and a testing set (20%). The training data was used to retrain the seasonal generator, entailing calculating new probabilities of transitioning between states for each month, and calculating the mean rainfall for each month. As the generator was retrained on only a portion of the data, it can be tested on the remainder 
 
@@ -408,7 +408,7 @@ TT$p.value
 ```
 Looking at the barplots of the simulated data (top) and the actual data (bottom), the two do not appear to be similar. While the simulation looks believeable, random with periods of intense rainfall, it does not resemble the actual data specifically. To test the similarity of the two data sets, both the non-parametric Wilcoxon Signed Rank Test and the parametric Student T Test were performed. Both tests are paired as each simulated day is attempting to predic a specific actual day. A non-parametric test was used in conjunction with a parametric test as from the distribution of the rainfall is not normal (as seen by earlier histograms). Both tests returned a p-value less than 0.005 at a significance of 0.05, and as such it can be concluded that the simulated rainfall and the actual rainfall are different. 
 
-# Using the data from the previous 10 years (2009-2018) to predict the weather for the next year (2019)
+## Using the data from the previous 10 years (2009-2018) to predict the weather for the next year (2019)
 
 Predicting a randomly selected 20% of the weather data was unsuccesful, the simulated data and the actual data were significantly different, and by a comfortable margin. To try to increase the accuracy of the simulated data, we will increase the amount of training data and attempt to predict a specific year, instead of a randomly selected bunch of days. Increasing the amount of training data should increase the accuracy of the probabilites, and reduce the impact of outlying observation; and predicting a specific year should give the seasonal function of the generator more power. The next test will be predicting the rainfall of 2019 using 10 years of data from 2009-2018. To achieve this, the seasonal generator was retrained on all the rainfall data from those 10 years, and a simulation the lengh of one, non leap, year was generated. 
 
@@ -432,7 +432,7 @@ par(mfrow = c(2,1))
 barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
 barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2019 Rainfall")
 ```
-Looking at the simulated rainfall against the actual 2019 rainfall, the simulation has a very similar wet dry cycle to the actual data, even if the amount of rainfall during the wet seasons is not an accurate depiction. Aside from the exact amount of rain, the simulation looks to be a fairly good prediction of 2019. 
+Looking at the simulated rainfall against the actual 2019 rainfall, the simulation has a very similar wet dry cycle, that is the length and timing of the extended wet and dry states, to the actual data, even if the amount of rainfall during the wet seasons is not an accurate depiction. Aside from the exact amount of rain, the simulation looks to be a fairly good prediction of 2019. 
 
 To check if the simulated year is a good prediction of 2019 specifically, we plotted it against several years that were used to train it. As the simulation was created using data from those years, it should show some resemblance, but if the simulated rainfall is predcintg 2019 specifically, the similarity should be less distinct.
 ```{r}
@@ -453,7 +453,9 @@ rm(year)
 ```
 As shown by the plots above, the simulated rainfall is roughly similar to other years, particularly 2007 and 2013 which have a similar wet dry cycle. However, the similarity does not appear to be as distinct, at least visually.
 
-# Examining for patterns
+## Examining for patterns
+
+So far, our generator utilised a two-state Markov chain based on whether a day was wet or dry. The simulations seem to be accurate, at least in regards to the wet dry cycle, but there is still definite room for improvement. A possible avenue for improvement is investigating if there are consistent patterns at larger time intervals, such as weeks and months. If such patterns are present they could guide the total volume of rainfall for that time period or be an additional layer of Markov Chain to standardise or correct the first, that is based on days. Rainfall by weeks will be explored first. 
 ```{r}
 # Creates a graph of difference in rainfall for years, weeks, months, years to see if there are any potential patterns.
 # Creates a list of the weekly rainfall
@@ -484,11 +486,13 @@ RainfallWeeklyDiff$`Rainfall diff (mm)` <- diff(RainfallWeekly$`Rainfall (mm)`) 
 ```{r, fig.height= 14}
 # plot first 700 weeks first against the difference in rainfall, and then the rainfall per week
 par(mfrow = c(4,1))
-plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
+plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b", main = "Difference in rainfall (mm) by week")
+plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
+plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b", main = "Difference in rainfall (mm) by week")
+plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
 ```
+
+Looking at the plot of the rainfall amount of rainfall by week, there seems to be fairly consistent periods of rainfall followed by dryness, with similar amounts of rainfall. However, looking at the plot of the difference in rainfall by week, it can be seen that the amount of rainfall in the wet periods are not consistent, with some having consistent rainfall (shown as small spikes) and others quickly changing between heavy rainfall and light rain (large spikes). Overall, the inconsistency of the amount of rainfall in wet periods, and the variation, though not large, in the time between wet and dry periods does not warrant the addition of a weekly Markov chain/
 
 ```{r, fig.height= 14}
 # plot second 700 weeks first against the difference in rainfall, and then the rainfall per week
@@ -513,7 +517,7 @@ hist(rainSort_2019, breaks = 50)
 rm(rainSort_2019)
 ```
 
-# Wilcoxon signed rank test on the data for 2019
+## Wilcoxon signed rank test on the data for 2019
 ```{r}
 rain2019 <- subset(weather_data, Year == 2019)
 length(rain2019$Rainfall.amount..millimetres.)
@@ -557,14 +561,23 @@ simRainfall2019 <- testSeasonalRainfall10
 ```
 
 ```{r}
+<<<<<<< HEAD
 set.seed(102343656)
 monthList <- subset(weather_data, Year == 2019) # A year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
 simRainfall2019 <- testSeasonalRainfall10 # Removing day 278 and day 353 data from testSeasonalRainfall10
 ```
+=======
+set.seed(40565)
 
-```{r}
+# get a testing 
+monthList <- subset(weather_data, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList <- monthList['Month']
+testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from testSeasonalRainfall10
+>>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
+
 # test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
@@ -583,8 +596,16 @@ set.seed(12345)
 monthList <- subset(weather_data, Year == 2011)
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+<<<<<<< HEAD
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+=======
+
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
+
+WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+WP$p.value
+>>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 cat(sumRanks[1], "is the sum of the ranks of the positive differences")
@@ -596,8 +617,16 @@ set.seed(347876)
 monthList <- subset(weather_data, Year == 2011) 
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+<<<<<<< HEAD
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] 
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+=======
+
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
+
+WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+WP$p.value
+>>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 cat(sumRanks[1], "is the sum of the ranks of the positive differences")
@@ -609,8 +638,15 @@ set.seed(3456789)
 monthList <- subset(weather_data, Year == 2011)
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
+<<<<<<< HEAD
 simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+=======
+simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)] # remove day 278 and day 353 data from testSeasonalRainfall10
+
+WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+WP$p.value
+>>>>>>> 6dbe1e946ee0e9aa5fa2748415cbd216a70bc307
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 cat(sumRanks[1], "is the sum of the ranks of the positive differences")
