@@ -9,13 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
 # Introduction and problem statement:
- The purpose of this project is to develop a weather generator for rainfall using the data gathered from the Perth Metro weather station (9225). To do so, we will be using a two-state Markov chain to predict the rainfall occurrences. Since we are creating a weather generator, the distinction must first be made between a 'weather generator' and a 'weather predictor' or forecast. The primary difference between the two is that a weather generator is a stochastic model. In other words, the simulated weather sequences produced by our generator will be different to past or future weather predictions or observations made using a forecasting model because our weather generator mimics weather data and is not an accurate prediction of the weather. 
- In accordance with the literature, in order to increase the accuracy of the model, seasonality (the probability of the tranisiton states) for specific months was utilised in order to increase the generator's accuracy. The Log-normal distribution was used in the generator as it produced a very similar shape to the actual data. Following this, we tested our generator by generating an alternative rainfall pattern for 2019 (using the previous decade's rainfall levels as training data) and then compared this result to the actual. We then proceeded to run several statistical tests over this generated year (most notably the wilcoxon signed ranked test) and found our generated year to not be significantly different from the year's actual rainfall levels. 
+The purpose of this project is to develop a weather generator for rainfall using the data gathered from the Perth Metro weather station (9225). To do so, we will be using a two-state Markov chain to predict the rainfall occurrences. Since we are creating a weather generator, the distinction must first be made between a 'weather generator' and a 'weather predictor' or forecast. The primary difference between the two is that a weather generator is a stochastic model. 
+In other words, the simulated weather sequences produced by our generator will be different to past or future weather predictions or observations made using a forecasting model because our weather generator mimics weather data and is not an accurate prediction of the weather. 
+ 
+In accordance with the literature, in order to increase the accuracy of the model, seasonality (the probability of the tranisiton states) for specific months was utilised in order to increase the generator's accuracy. The Log-normal distribution was used in the generator as it produced a very similar shape to the actual data. Following this, we tested our generator by generating an alternative rainfall pattern for 2019 (using the previous decade's rainfall levels as training data) and then compared this result to the actual. We then proceeded to run several statistical tests over this generated year (most notably the wilcoxon signed ranked test) and found our generated year to not be significantly different from the year's actual rainfall levels. 
  
 
 # Literature review:
 
-<<<<<<< HEAD
 One of the very early works on probabilistic modelling of rainfall was done by Quetelet in 1852 (Katz, 1985), where he showed that consecutive runs of wet or dry days show persistence. Since then, precipitation has been a topic of intense research as the absence or presence of rainfall can affect a large number of other variables that need to be simulated and modelled for weather. It is vital in areas such as farming, ecosystem, climate change simulations, and other important processes (Wilks and Wilby, 1999).
 
 In this project we will be using a two-state Markov chain to predict the rainfall occurrences and amount for the metropolitan areas in Australia. Before beginning however, note that a weather generator is different to a forecast because it is a stochastic model where the simulated weather sequences will not be expected to be the same as the future or past weather observation made using a forecast. In other words, a weather generator mimics weather data but it never predicts the weather.
@@ -252,7 +253,7 @@ probTransStatesMonth <- function(input_data){
   names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet')
 
   #Makes the dataframe with the count of each transition state with each month
-  for (i4 in 1:dim(train_data)[1]){
+  for (i4 in 1:dim(input_data)[1]){
     tempTransitionState <- input_data[i4, 'transitionState']
     tempMonth <- input_data[i4, 'Month'] 
     transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1 # increase count of tempTransitionState for month tempMonth by 1
@@ -321,10 +322,8 @@ plot(probTransitonStatesMonthsFrame$WetToWet, ylim = c(0,1), xlab = "Month", mai
 
 The new updated weather generator uses the same old generator code for the most part, with a few changes. We now change the probability of the transitions depending on the month of the observation. This requires that we now input a data frame with a month column to calculate this. The rainfall generated on wet days is also updated to vary per month. 
 ```{r}
-
 #Weather generator accounting  for seasonal variation of transition states or something i hope
-#Yes this is just a spicy version of basic generator it's mostly the same in fact if i forget to even do this it is the same
-
+#This is just a regular version of basic generator it's mostly the same in fact if i forget to even do this it is the same
 
 generateRainfallSeasonal <- function(input){
   # input must be weather_data or a subset of weather_data
@@ -346,13 +345,12 @@ generateRainfallSeasonal <- function(input){
       else{
         currentState = "dry"
       }
-    }
-                                      #generating amount of rainfall if state is wet, else 0
+    }                                   
+    #generating amount of rainfall if state is wet, else 0
     if (currentState == "wet"){
-      
       #rainAmount <- 5.66*exp(rnorm(1)) #now log-normal dist, 5 used because is close to mean of weather_data's / the mean of what exp(rnorm(1)) is by default /// Old Version 
-      rainAmount <- rainfallAvgMonth[input[i5, 'Month']]*exp(rnorm(1))/1.648 #average of exp(rnorm(1)) is ~1.648, so we divide by that so the average of each month will just be the actual average calculated from rainfallAvgMonth.
-      
+      rainAmount <- rainfallAvgMonth[input[i5, 'Month']]*exp(rnorm(1))/1.648 
+      #average of exp(rnorm(1)) is ~1.648, so we divide by that so the average of each month will just be the actual average calculated from rainfallAvgMonth.
       rainAmountList <- c(rainAmountList, rainAmount)
     }
     else{
@@ -366,7 +364,6 @@ generateRainfallSeasonal <- function(input){
 ```{r}
 #testing code for seasonal generator
 inputSeasonalRainfall <- dplyr::select(train_data, 'Year', 'Month', 'Day') #using existing train data's dates to input to function, instead of putting in just how many to generate
-
 testSeasonalRainfall = generateRainfallSeasonal(inputSeasonalRainfall)
 ```
 Simulated rainfall now follows a more seasonal pattern, as seen in the original data. Since we have used the original datas transition probabilities and rainfall averages, we expect that our model can give similar results to the original data.
@@ -384,7 +381,6 @@ hist(p1, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "Simulated distri
 
 p2 <- train_data$Rainfall.amount..millimetres.[train_data$Rainfall.amount..millimetres.>1]
 hist(p2, breaks = 30, xlim = c(0,120), ylim = c(0,400), main = "actual distribution")
-
 ```
 
 # Testing with sampling - Testing on a percentage of the data
@@ -393,16 +389,13 @@ To properly test a predictive algorithm, you cannot test the algorithm on the da
 
 ```{r}
 set.seed(100345)
-
 sampID <- sample.int(nrow(train_data), size = 0.8*nrow(train_data), replace = FALSE)
 train_data <- train_data[sampID,] # 80% of data for training
 test_data <- train_data[-sampID,] # 20% for testing
 ```
 
 ```{r}
-
 probTransitonStatesMonthsFrame <- probTransStatesMonth(train_data) # retraining seasonal generator probTransitionStatesMonthsFrame with new training data (now only 80% of the original train_data)
-
 # calucating the new average rainfall for each month
 rainMonthData <- c()
 for (i in 1:12){
@@ -416,9 +409,10 @@ rainfallAvgMonth <- sapply(rainMonthData, mean)
 The newly calibrated seasonal generator was then used to predict the testing data. This just involved generating simulated rainfall with the same number of observations as the tesing data (about 2.6 years of rainfall, or 20% of the original 10.5 years)
 
 ```{r}
-#generate test data
-testSeasonalRainfall20 = generateRainfallSeasonal(test_data) # generate a simulation with the same number of observations as test_data (20% of the total data)
+#generates a simulation with the same number of observations as test_data (20% of the total data)
+testSeasonalRainfall20 = generateRainfallSeasonal(test_data) 
 ```
+
 ```{r}
 par(mfrow = c(2, 1))
 barplot(testSeasonalRainfall20, ylab = "Rainfall (mm)", xlab = "index", main = "Simulated data")
@@ -447,13 +441,8 @@ data_2019 <- subset(weather_data, Year == 2019)
 ```
 
 ```{r}
-
 probTransitonStatesMonthsFrame <- probTransStatesMonth(train10_data) # retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
-
-
 set.seed(10356)
-
-# get a testing 
 monthList <- subset(weather_data, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
 testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
@@ -489,7 +478,6 @@ T
 # Examining for patterns
 ```{r}
 # Creates a graph of difference in rainfall for years, weeks, months, years to see if there are any potential patterns.
-
 # Creates a list of the weekly rainfall
 RainfallWeekly <- data.frame("Rainfall (mm)", "Week")
 colnames(RainfallWeekly) <- c("Rainfall (mm)", "Week")
@@ -514,6 +502,7 @@ RainfallWeeklyDiff <- data.frame(c(1:(nrow(RainfallWeekly)-1)), c(1:(nrow(Rainfa
 colnames(RainfallWeeklyDiff) <- c("Rainfall diff (mm)", "Week")
 RainfallWeeklyDiff$`Rainfall diff (mm)` <- diff(RainfallWeekly$`Rainfall (mm)`) # change in weeks
 ```
+
 ```{r, fig.height= 14}
 # plot first 700 weeks first against the difference in rainfall, and then the rainfall per week
 par(mfrow = c(4,1))
@@ -521,7 +510,6 @@ plot(RainfallWeeklyDiff[c(1:350), 2], RainfallWeeklyDiff[c(1:350), 1], xlab = "w
 plot(RainfallWeekly[c(1:350), 2], RainfallWeekly[c(1:350), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
 plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-
 ```
 
 ```{r, fig.height= 14}
@@ -604,7 +592,6 @@ simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from
 wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
 
 # the p-value is 0.04918,indicating that it is likely that there is a significant difference between the simulated data and the actual data. This means that one set of data was consistently and significantly larger than the other
-
 # manual calculation of Wilcoxon signed rank values 
 
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
@@ -613,6 +600,7 @@ sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
 
 # rankPosDiff (the sum of the ranks of the differences where the simulated data is greater than the actual) is 7414. rankNegDiff (the sum of the ranks of the the differences where the actual is greater than the simulated) is 5147. rankPosDiff is quite a bit larger than rankNegDiff
 ```
+
 ```{r}
 # to confirm the results of the first Wilcoson signed rank test, repeat with 3 different sets of simulated rainfall
 set.seed(12345)
@@ -636,7 +624,6 @@ sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
 ```
 ```{r}
 set.seed(347876)
-
 # using month probabilites generate one years worth of data 
 monthList <- subset(weather_data, Year == 2011) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList <- monthList['Month']
@@ -650,8 +637,8 @@ wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T,
 sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
 sumRanks[1] # rankPosDiff ( sum of the ranks of the positive differences)
 sumRanks[2] # rankNegDiff (sum of the ranks of the negative differrences)
-
 ```
+
 ```{r}
 set.seed(3456789)
 # using month probabilites generate one years worth of data 
@@ -699,7 +686,6 @@ rm(simRainfall2019)
 
 ```{r}
 # looking at 2013 data (which had a larger than average amount of rain)
-
 rain2013 <- subset(weather_data, Year == 2013)
 simRainfall2013 <- generateRainfallSeasonal(monthList)
 wilcox.test(simRainfall2013, rain2013$Rainfall.amount..millimetres., paired = T, conf.int = T, conf.level = 0.95)
