@@ -9,17 +9,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ``` 
 # Problem statement and background:
+ The purpose of this project is to develop a weather generator for rainfall using the data gathered from the Perth Metro weather station (9225). To do so, we will be using a two-state Markov chain to predict the rainfall occurrences. Since we are creating a weather generator, the distinction must first be made between a 'weather generator' and a 'weather predictor' or forecast. The primary difference between the two is that a weather generator is a stochastic model. In other words, the simulated weather sequences produced by our generator will be different to past or future weather predictions or observations made using a forecasting model because our weather generator mimics weather data and is not an accurate prediction of the weather. 
+ In accordance with the literature, in order to increase the accuracy of the model, seasonality for the specific months was utilised in order to increase the model's accuracy. Following this, we tested our generator by generating an alternative rainfall pattern for 2019 (using the previous decade's rainfall levels as training data) and then compared this result to the actual. We then proceeded to run several statistical tests over this generated year (most notably the wilcoxon signed ranked test) and found our generated year to be relatively accurate. 
  
 
 # Brief literature review:
 
-One of the very early works on probabilistic modelling of rainfall was done by Quetelet in 1852 (Katz, 1985), where he showed that consecutive runs of wet or dry days show persistence. Since then, precipitation has been a topic of intense research as the absence or presence of rainfall can affect a large number of other variables that need to be simulated and modelled for weather. It is vital in areas such as farming, ecosystem, climate change simulations, and other important processes (Wilks and Wilby, 1999).
+In an article published in the quarterly Journal of the Royal Meteorological Society in 1962, Gabriel and Neumann first recognised that the frequency-distributions for wet and dry spells created by that point by Williams (1952) and Longley (1953) could be modelled through a Markov chain. They created a statistical model modelling daily rainfall occurrence in Tel Aviv using a first-order Markov chain probability model. There model was created such that the probability of whether or not it rained the next day depended on the 'state' of the current day (whether it was dry or wet).
 
-In this project we will be using a two-state Markov chain to predict the rainfall occurrences and amount for the metropolitan areas in Australia. Before beginning however, note that a weather generator is different to a forecast because it is a stochastic model where the simulated weather sequences will not be expected to be the same as the future or past weather observation made using a forecast. In other words, a weather generator mimics weather data but it never predicts the weather.
-
-In an article published in the quarterly Journal of the Royal Meteorological Society in 1962, Gabriel and Neumann first recognised that the frequency-distributions for wet and dry spells created by that point by Williams (1952) and Longley (1953) could be modelled through a Markov chain. They created a statistical model modelling daily rainfall occurrence in Tel Aviv using a first-order Markov chain probability model, under the assumption that whether it will rain or not on the next day will depend on whether rain occurred on the current day. 
-
-Another study conducted by Chowdhury and Lockart (2017) also proposed using a two-state Markov chain to create a stochastic rainfall model focusing on daily rainfall and employed a gamma distribution to model the amount of rain for “wet” days. The model was run multiple times and calculated the mean and standard deviation of the rainfall amount to generate the expected rainfall, and the occurrence of rainfall were modelled using the Markov chain.
+Another one of the earlierst works done on this topic was done by Quetelet in 1852 (Katz, 1985), where he showed that consecutive runs of wet or dry days show persistence. Since then, precipitation has been a topic of intense research as the absence or presence of rainfall can affect a large number of other variables that need to be simulated and modelled for weather. It is vital in areas such as farming, ecosystem, climate change simulations, and other important processes (Wilks and Wilby, 1999).
 
 Markov chains have also been used with semi-parametric models that make use of aggregate conditioning variables that can be chosen, to better represent larger time period monthly and annually occurring rainfall patterns. This is particularly useful, as basic two-state markov models, while accurate for short-term weather conditions, have typically underrepresented the overall variance across month and year-based time periods (Mehrotra & Sharma, 2007). 
 
@@ -29,10 +27,7 @@ It is important to note that the current weather generator distinguishes between
 
 The data for use in this project is sourced from the Bureau of Meteorology (BOM).
 
-#### Critical Analysis
-The Markov chain probabilities for continued rain can be used to “modify” or add a constant to predicted rainfall. Looking at the rainfall data, longer successive periods of rain have higher average rainfalls per day for the period, and so using the higher chance of rain for the next day (modified) to also add a modifier to the predicted amount of rainfall may be useful. As was performed by Mehrotra and Sharma (Mehrotra & Sharma, 2007), it may be useful to modify it to a semi-parametric model, and include aggregate conditioning variables to better model the longer scale monthly and yearly weather conditions, and make use of kernel density procedures to better model the likely non-independent wet days and their corresponding rainfall amounts.
-
-####References:
+#### References:
 
 Gabriel, K.R. and Neumann, J. (1962), A Markov chain model for daily rainfall occurrence at Tel Aviv. Q.J.R. Meteorol. Soc., 88: 90-95. doi:10.1002/qj.49708837511.  
 
@@ -40,15 +35,17 @@ Miller, D. K. and Homan, S. M. (1994), Determining Transition Probabilities: Con
 
 Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of stochastic weather models. Progress in Physical Geography., 23: 329-357. 
 
-####Methodology and Data
+Link to main data source: 
+http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
 
-#####Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
+#### Methodology and Data
+
+##### Our initial methodology can be reduced down to 3 Areas for Weather Modelling:
 1. Produce markov chain model on overall data
 2. Split data based on Wet vs Dry Seasons
 3. Split data based on Seasons
 
-
-#####Overall Methodology:
+##### Overall Methodology:
 
 1. Data Cleaning:
 - Deleting a few extra columns not required for analysis.
@@ -91,10 +88,6 @@ Main
 - Show simulated boxplots and actual boxplots side by side to see how well the markov chain simulated the overall amount of rainfall for each season. 
 
 
- 
-
-Link to data source: 
-http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
 
 # Preliminary Setup 
 ```{r}
@@ -399,7 +392,6 @@ barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Origin
 barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
 ```
 
-# use 10 years data (2009-2018) to predict next (2019)
 ```{r}
 #comparing log-normal against actual data, veeerryyyy close fit, will use log-normal for rainfall sim
 p1 <- 5*exp(rnorm(732))
