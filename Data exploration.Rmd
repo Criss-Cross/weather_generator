@@ -400,35 +400,8 @@ test_data <- train_data[-sampID,] # 20% for testing
 ```
 
 ```{r}
-<<<<<<< HEAD
-#code to calculate transition probabilities for each month (copied from earlier)
-#calculating the number of occurances of each trainsition state for each month
-transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
-names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
-
-for (i4 in 1:dim(train_data)[1]){ #making dataframe with count of each transition state for each month
-  tempTransitionState <- train_data[i4, 'transitionState']
-  tempMonth <- train_data[i4, 'Month']
-  transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
-}
-
-#calculating the probabilites of each transition state for eachonth from the number of occurances 
-probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
-
-for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
-  
-  probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
-  
-  probTransitonStatesMonthsFrame[i, 'DryToWet'] <- transitonStatesMonthsFrame[i, 'DryToWet'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
-    
-  probTransitonStatesMonthsFrame[i, 'WetToDry'] <- transitonStatesMonthsFrame[i, 'WetToDry'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
-    
-  probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
-}
-=======
 
 probTransitonStatesMonthsFrame <- probTransStatesMonth(train_data) # retraining seasonal generator probTransitionStatesMonthsFrame with new training data (now only 80% of the original train_data)
->>>>>>> b8d074c2640bb8a56ef44ce6abc3fac905150a21
 
 # calucating the new average rainfall for each month
 rainMonthData <- c()
@@ -474,36 +447,9 @@ data_2019 <- subset(weather_data, Year == 2019)
 ```
 
 ```{r}
-<<<<<<< HEAD
-#code to calculate transition probabilities for each month (copied from earlier)
-transitonStatesMonthsFrame <- data.frame(list(rep(0, 12), list(rep(0, 12), list(rep(0, 12), list(rep(0, 12)))))) #initialising frame by creating 12x4 frame filled with zeroes
-names(transitonStatesMonthsFrame) <- c('DryToDry', 'DryToWet', 'WetToDry', 'WetToWet') #name da columns
-
-for (i4 in 1:dim(train10_data)[1]){ #making dataframe with count of each transition state for each month
-  tempTransitionState <- train10_data[i4, 'transitionState']
-  tempMonth <- train10_data[i4, 'Month']
-  transitonStatesMonthsFrame[tempMonth, tempTransitionState] <- transitonStatesMonthsFrame[tempMonth, tempTransitionState]+1
-}
-```
-
-```{r}
-#also copied from earlier
-probTransitonStatesMonthsFrame<- transitonStatesMonthsFrame
-for (i in 1:dim(transitonStatesMonthsFrame)[1]){ #calculating transition probs for each month in df
-  
-  probTransitonStatesMonthsFrame[i, 'DryToDry'] <- transitonStatesMonthsFrame[i, 'DryToDry'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
-  
-  probTransitonStatesMonthsFrame[i, 'DryToWet'] <- transitonStatesMonthsFrame[i, 'DryToWet'] / (transitonStatesMonthsFrame[i, 'DryToDry'] + transitonStatesMonthsFrame[i, 'DryToWet'])
-    
-  probTransitonStatesMonthsFrame[i, 'WetToDry'] <- transitonStatesMonthsFrame[i, 'WetToDry'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
-    
-  probTransitonStatesMonthsFrame[i, 'WetToWet'] <- transitonStatesMonthsFrame[i, 'WetToWet'] / (transitonStatesMonthsFrame[i, 'WetToDry'] + transitonStatesMonthsFrame[i, 'WetToWet'])
-}
-```
-=======
 
 probTransitonStatesMonthsFrame <- probTransStatesMonth(train10_data) # retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
->>>>>>> b8d074c2640bb8a56ef44ce6abc3fac905150a21
+
 
 set.seed(10356)
 
