@@ -600,7 +600,7 @@ wilcox <- function(seed, year){
  barplot(simRainfall, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
  barplot(rainYear$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)",  main = "Actual Rainfall")
 }
-wilcox(40565, 2019)
+wilcox(40464, 2019)
 ```
 
 
