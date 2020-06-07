@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 The purpose of this project is to develop a weather generator for rainfall using the data gathered from the Perth Metro weather station (9225). To do so, we will be using a two-state Markov chain to predict the rainfall occurrences. Since we are creating a weather generator, the distinction must first be made between a 'weather generator' and a 'weather predictor' or forecast. The primary difference between the two is that a weather generator is a stochastic model. 
 In other words, the simulated weather sequences produced by our generator will be different to past or future weather predictions or observations made using a forecasting model because our weather generator mimics weather data and is not an accurate prediction of the weather. 
  
-In accordance with the literature, in order to increase the accuracy of the model, seasonality (the probability of the tranisiton states) for specific months was utilised in order to increase the generator's accuracy. The Log-normal distribution was used in the generator as it produced a very similar shape to the actual data. Following this, we tested our generator by generating an alternative rainfall pattern for 2019 (using the previous decade's rainfall levels as training data) and then compared this result to the actual. We then proceeded to run several statistical tests over this generated year (most notably the wilcoxon signed ranked test) and found our generated year to not be significantly different from the year's actual rainfall levels. 
+In accordance with the literature, in order to increase the accuracy of the model, seasonality (the probability of the tranisiton states) for specific months was taken into consideration. The Log-normal distribution was used in the generator as it produced a very similar shape to the actual data. Following this, we tested our generator by generating an alternative rainfall pattern for 2019 (using the previous decade's rainfall levels as training data) and then compared this result to the actual. We then proceeded to run several statistical tests over this generated year (most notably the wilcoxon signed ranked test) and found our generated year to not be significantly different from the year's actual rainfall levels. Furthermore we tested the model against a different data source to verify its reliability and consistency. Concluding that we were able to create an accurate simulation of rainfall (based on a given data source). 
  
 
 # Literature review:
@@ -50,7 +50,9 @@ Our methodology is broken down as follows:
 - Generate rainfall amount according to log-normal distribution
 
 3) Testing
-- Sean please write something here
+- Numerical comparison of rainfall levels between simulated data and actual data
+- Wilcoxon signed ranked test and comparison of P-values
+- Tested model on secondary data source and compared the respective results
 
 # Code rationale 
 ```{r}
@@ -273,7 +275,6 @@ probTransStatesMonth <- function(input_data){
   }
   return(probTransitonStatesMonthsFrame)
 }
-
 ```
 
 ```{r}
@@ -368,9 +369,12 @@ testSeasonalRainfall = generateRainfallSeasonal(inputSeasonalRainfall)
 ```
 Simulated rainfall now follows a more seasonal pattern, as seen in the original data. Since we have used the original datas transition probabilities and rainfall averages, we expect that our model can give similar results to the original data.
 ```{r}
-par(mfrow=c(2,1))
-barplot(train_data$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
-barplot(testSeasonalRainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
+plot_seasonal_data <- function(training_data_input,seasoned_data_rainfall){
+  par(mfrow=c(2,1))
+  barplot(training_data_input$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
+  barplot(seasoned_data_rainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
+}
+plot_seasonal_data(train_data,testSeasonalRainfall)
 ```
 Below shows the testing of the days between rainfall for the updated generator. As we can see, the distributions are now much closer than previously, by accounting for seasonal variability. There are now multiple stretches of no rain for more than 50 days, as seen in the actual data. There is also a similar amount of 0 days between rainfall. This is a significant improvement that increases the realisticness of the results.
 ```{r}
@@ -381,7 +385,6 @@ We see that a wilcoxon test reveals no evidence to suggest that the medians of t
 ```{r}
 wilcox.test(daysBetweenRain(testSeasonalRainfall), daysBetweenRain(train_data$Rainfall.amount..millimetres.))
 mean(daysBetweenRain(testSeasonalRainfall)); mean(daysBetweenRain(train_data$Rainfall.amount..millimetres.))
-
 sd(daysBetweenRain(testSeasonalRainfall)); sd(daysBetweenRain(train_data$Rainfall.amount..millimetres.))
 ```
 
@@ -661,6 +664,18 @@ rankPosDiff
 rankNegDiff
 mean(diffs)
 ```
+The following shows the results of our model using a secondary data source from Sydney.
+```{r}
+# Reading in the data from the csv file for the Sydney Location
+data2 <-  read.csv("IDCJAC0009_066062_1800_Data.csv")
+weather_data2 <- data
+weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made
+weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
+train_data2 <- subset(weather_data2, Year >= 2010)
+inputSeasonalRainfall2 <- dplyr::select(train_data2, 'Year', 'Month', 'Day')
+testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall2)
+plot_seasonal_data(train_data2,testSeasonalRainfall2)
+```
 # Conclusion and summary of the findings:
 
 In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results not being a completely accurate prediction of 2019 (as seen in the bar plots above), the simulation both follows an accurate distribution of rainfall and has a median that is similar to the acutal rainfall. 
@@ -675,5 +690,8 @@ Wilks, D. S and Wilby, R. L. (1999), The Weather generation game: a review of st
 
 George, Jany, J. Letha, and P. Jairaj. "Daily rainfall prediction using generalized linear bivariate model–A case study." Procedia Technology 24 (2016): 31-38.
 
-Link to main data source - Perth Metro Weather Station (weather station 9225): 
-http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=2019&p_c=-17059101&p_stn_num=009225
+Link to main data source - Perth Metro Weather Station (weather station 009225): 
+http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num=009225
+
+Link to secondary data source - Sydney Observatory Hill Weather Station (weather station 66062):
+http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num=066062
