@@ -671,25 +671,28 @@ The following shows the results of our model using a secondary data source from 
 # Reading in the data from the csv file for the Sydney Location
 data2 <-  read.csv("IDCJAC0009_066062_1800_Data.csv")
 weather_data2 <- data2
-weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made
-weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
+
 weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] #excluding rows with no rainfall record made
-weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) #creating a column that contains the date for easy indentification
+weather_data2$date2 <- do.call(paste, c(weather_data2[c("Day", "Month", "Year")], sep = "-")) #creating a column that contains the date for easy indentification
+weather_data2$state <- state(weather_data2$Rainfall.amount..millimetres.)
+weather_data2$transitionState <- transitionState(weather_data2$state)
 train_data2 <- subset(weather_data2, Year >= 2010)
 inputSeasonalRainfall2 <- dplyr::select(train_data2, 'Year', 'Month', 'Day')
-testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall2)
-plot_seasonal_data(train_data2,testSeasonalRainfall2, "(Sydney)")
 ```
 ```{r}
 train_data2 <- subset(weather_data2, Year >= 2010)
 train10_data2 <- subset(weather_data2, Year >= 2009 & Year < 2019)
 data_2019_2 <- subset(weather_data2, Year == 2019)
+
+probTransitonStatesMonthsFrame <- probTransStatesMonth(train10_data2) # retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
+testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall2)
+plot_seasonal_data(train_data2,testSeasonalRainfall2, "(Sydney)")
 ```
 
 ```{r}
 probTransitonStatesMonthsFrame <- probTransStatesMonth(train10_data2) # retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
 set.seed(10546)
-monthList_2 <- subset(weather_data2, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList_2 <- data_2019_2 # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList_2 <- monthList_2['Month']
 testSeasonalRainfall10_2 <- generateRainfallSeasonal(monthList_2)
 ```
