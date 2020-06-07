@@ -369,12 +369,12 @@ testSeasonalRainfall = generateRainfallSeasonal(inputSeasonalRainfall)
 ```
 Simulated rainfall now follows a more seasonal pattern, as seen in the original data. Since we have used the original datas transition probabilities and rainfall averages, we expect that our model can give similar results to the original data.
 ```{r}
-plot_seasonal_data <- function(training_data_input,seasoned_data_rainfall){
+plot_seasonal_data <- function(training_data_input,seasoned_data_rainfall, title){
   par(mfrow=c(2,1))
-  barplot(training_data_input$Rainfall.amount..millimetres., ylim = c(0,80), main = "Original Data", ylab = "Rainfall (mm)", xlab = "Index")
-  barplot(seasoned_data_rainfall, ylim = c(0,80), main = "Simulated Data - seasonal", ylab = "Rainfall (mm)", xlab = "Index")
+  barplot(training_data_input$Rainfall.amount..millimetres., ylim = c(0,80), main = c("Original Data", title), ylab = "Rainfall (mm)", xlab = "Index")
+  barplot(seasoned_data_rainfall, ylim = c(0,80), main = c("Simulated Seasonal Data", title), ylab = "Rainfall (mm)", xlab = "Index")
 }
-plot_seasonal_data(train_data,testSeasonalRainfall)
+plot_seasonal_data(train_data,testSeasonalRainfall, "(Perth)")
 ```
 Below shows the testing of the days between rainfall for the updated generator. As we can see, the distributions are now much closer than previously, by accounting for seasonal variability. There are now multiple stretches of no rain for more than 50 days, as seen in the actual data. There is also a similar amount of 0 days between rainfall. This is a significant improvement that increases the realisticness of the results.
 ```{r}
@@ -600,9 +600,11 @@ wilcox <- function(seed, year){
 }
 wilcox(404567, 2019)
 ```
+
 Running the test on the 2019 rainfall and a simulated 2019 rainfall gave a p-value of 0.0402. This is less than the significance level of 0.05, and this it can be consluded that the two are different. Looking at the sum of ranks of differences, the simulation significantly overestimated, as there are far more positive differences. However, the p-value is only just under the 0.05 level of significance.
 
 To confirm the results of the first Wilcoxon Signed Rank test, we repeat the code and test above with 3 different sets of randomised simulated rainfall.
+
 ```{r, echo=FALSE}
 wilcox(12345, 2019)
 wilcox(347876, 2019)
@@ -671,12 +673,34 @@ data2 <-  read.csv("IDCJAC0009_066062_1800_Data.csv")
 weather_data2 <- data2
 weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made
 weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
+weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] #excluding rows with no rainfall record made
+weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) #creating a column that contains the date for easy indentification
 train_data2 <- subset(weather_data2, Year >= 2010)
 inputSeasonalRainfall2 <- dplyr::select(train_data2, 'Year', 'Month', 'Day')
 testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall2)
-plot_seasonal_data(train_data2,testSeasonalRainfall2)
+plot_seasonal_data(train_data2,testSeasonalRainfall2, "(Sydney)")
 ```
+```{r}
+train_data2 <- subset(weather_data2, Year >= 2010)
+train10_data2 <- subset(weather_data2, Year >= 2009 & Year < 2019)
+data_2019_2 <- subset(weather_data2, Year == 2019)
+```
+
+```{r}
+probTransitonStatesMonthsFrame <- probTransStatesMonth(train10_data2) # retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
+set.seed(10546)
+monthList_2 <- subset(weather_data2, Year == 2019) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+monthList_2 <- monthList_2['Month']
+testSeasonalRainfall10_2 <- generateRainfallSeasonal(monthList_2)
+```
+
+```{r, fig.height=9}
+#compare generated year against 2019
+par(mfrow = c(2,1))
+barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
+barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2019 Rainfall")
 # Conclusion and summary of the findings:
+```
 
 In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results not being a completely accurate prediction of 2019 (as seen in the bar plots above), the simulation both follows an accurate distribution of rainfall and has a median that is similar to the acutal rainfall. 
 
