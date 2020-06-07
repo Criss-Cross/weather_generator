@@ -275,7 +275,6 @@ probTransStatesMonth <- function(input_data){
   }
   return(probTransitonStatesMonthsFrame)
 }
-
 ```
 
 ```{r}
@@ -383,7 +382,6 @@ We see that a wilcoxon test reveals no evidence to suggest that the medians of t
 ```{r}
 wilcox.test(daysBetweenRain(testSeasonalRainfall), daysBetweenRain(train_data$Rainfall.amount..millimetres.))
 mean(daysBetweenRain(testSeasonalRainfall)); mean(daysBetweenRain(train_data$Rainfall.amount..millimetres.))
-
 sd(daysBetweenRain(testSeasonalRainfall)); sd(daysBetweenRain(train_data$Rainfall.amount..millimetres.))
 ```
 
@@ -698,8 +696,15 @@ weather_data2 <- data
 weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made
 weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
 train_data2 <- subset(weather_data2, Year >= 2010)
+testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall)
 probTransitonStatesMonthsFrame2 <- probTransStatesMonth(train_data2)
 head(probTransitonStatesMonthsFrame,10)
+set.seed(100368)
+sampID <- sample.int(nrow(train_data), size = 0.8*nrow(train_data), replace = FALSE)
+train_data <- train_data2[sampID,] # 80% of data for training
+test_data <- train_data2[-sampID,] # 20% for testing
+inputSeasonalRainfall <- dplyr::select(train_data, 'Year', 'Month', 'Day') #using existing train data's dates to input to function, instead of putting in just how many to generate
+
 ```
 # Conclusion and summary of the findings:
 In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results seemingly not being an accurate prediction of 2019 (as seen in the bar plots above), the simulation does generate rainfall data that is logically consistent with the median rainfall amounts. # ADD MORE INFORMATION AND RESULTS HERE.
