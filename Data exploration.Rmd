@@ -490,7 +490,7 @@ As shown by the plots above, the simulated rainfall is roughly similar to other 
 
 ## Examining for patterns
 
-So far, our generator utilised a two-state Markov chain based on whether a day was wet or dry. The simulations seem to be accurate, at least in regards to the wet dry cycle, but there is still definite room for improvement. A possible avenue for improvement is investigating if there are consistent patterns at larger time intervals, such as weeks and months. If such patterns are present they could guide the total volume of rainfall for that time period or be an additional layer of Markov Chain to standardise or correct the first, that is based on days. Rainfall by weeks will be explored first. 
+So far, our generator utilised a two-state Markov chain based on whether a day was wet or dry. The simulations seem to be accurate, at least in regards to the wet dry cycle, but there is still definite room for improvement. A possible avenue for improvement is investigating if there are consistent patterns at larger time intervals, such as weeks. If such patterns are present they could guide the total volume of rainfall for that time period or be an additional layer of Markov Chain to standardise or correct the first, that is based on days. Rainfall by weeks will be explored first. 
 ```{r}
 # Creates a graph of difference in rainfall for years, weeks, months, years to see if there are any potential patterns.
 # Creates a list of the weekly rainfall
@@ -527,9 +527,11 @@ plot(RainfallWeeklyDiff[c(351:700), 2], RainfallWeeklyDiff[c(351:700), 1], xlab 
 plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week", ylab = "rainfall (mm)", type = "l", main = "Rainfall (mm) by week")
 ```
 
-Looking at the plot of the rainfall amount of rainfall by week, there seems to be fairly consistent periods of rainfall followed by dryness, with similar amounts of rainfall. However, looking at the plot of the difference in rainfall by week, it can be seen that the amount of rainfall in the wet periods are not consistent, with some having consistent rainfall (shown as small spikes) and others quickly changing between heavy rainfall and light rain (large spikes). Overall, the inconsistency of the amount of rainfall in wet periods, and the variation, though not large, in the time between wet and dry periods does not warrant the addition of a weekly Markov chain/
+Looking at the plot of the rainfall amount of rainfall by week, there seems to be fairly consistent periods of rainfall followed by dryness, with similar amounts of rainfall. However, looking at the plot of the difference in rainfall by week, it can be seen that the amount of rainfall in the wet periods are not consistent, with some having consistent rainfall (shown as small spikes) and others quickly changing between heavy rainfall and light rain (large spikes). Overall, the inconsistency of the amount of rainfall in wet periods, and the variation, though not large, in the time between wet and dry periods does not warrant the addition of a weekly Markov chain.
 
 ```{r, fig.height= 14}
+# might remove this, already show first 700 weeks
+
 # plot second 700 weeks first against the difference in rainfall, and then the rainfall per week
 par(mfrow = c(4,1))
 plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
@@ -538,25 +540,25 @@ plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], x
 plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
 ```
 
+In order to quantify the accuracy of our generator, we will use statistical tests. The test would be a paired two sample test, as each day in the simulated data corresponds to a specific day in the actual day. Two candidates that meet that crteria are a paired two sample Student T test and the Wilcoxon Signed Rank test. The former is a parametric test, while the latter is non-parametric. To decide between the two, we looked at the normality of the data, as parametric tests are often more accurate than non-parametric if the data is normally distributed. 
 ```{r}
 rainSort_2019 <- data_2019$Rainfall.amount..millimetres.
 # qqplot before removing 'dry' days
+par(mfrow=c(1,2))
 qqnorm(rainSort_2019, pch = 1, frame = F, main = "Normal Q-Q Plot of Rainfall 2019 (including dry days)")
 qqline(rainSort_2019, col = "red", lwd = 2)
 rainSort_2019 <- rainSort_2019[which(rainSort_2019 != 0)]
 # qqplot after removing 'dry' days
 qqnorm(rainSort_2019, pch = 1, frame = F, main = "Normal Q-Q Plot of Rainfall 2019 (excluding dry days)")
 qqline(rainSort_2019, col = "red", lwd = 2)
-hist(rainSort_2019, breaks = 50)
+
 # data is not normally distributed
 rm(rainSort_2019)
 ```
+From the above qq-plots, it is clear that the data is not normally distributed, whether we include or exclude dry days. Thus, we will use the non-parametric Wilcoxon Signed Rank test to check the similarity between the simualted rainfall for 2019 and the actual rainfall.
 
 ## Wilcoxon signed rank test on the data for 2019
 ```{r}
-rain2019 <- subset(weather_data, Year == 2019)
-length(rain2019$Rainfall.amount..millimetres.)
-length(testSeasonalRainfall10)
 # Function that returns the sum of ranks of difference (w+ and w-) that are part of the Wilcoxon signed rank calculations
 returnRanks <- function(simulated, actual){
   diffs <- (simulated - actual)
@@ -568,72 +570,43 @@ returnRanks <- function(simulated, actual){
   rankNegDiff <- sum(rank[negDiffs]) 
   return(c(rankPosDiff, rankNegDiff))
 }
+
 ```
 
-```{r, results="hide"}
-table(rain2019$Month)
-# To perform the Wilcoxon Signed Rank test we must have paired data, so we have to find the extra dates in testSeasonalRainfall10 (note: 2019 is a non leap year) and remove them.
-# Upon review we find that there are days missing from October and December.
-```
 
-```{r, echo=FALSE, results="hide"}
-table(rain2019$Day)
-# One month is missing a day 5, and another is missing a day 19 (both 11 when should be 12)
-temp <- subset(rain2019, Day == 5)
-temp$Month # 5th of October missing
-temp <- subset(rain2019, Day == 19)
-temp$Month # 19th of December missing
-rm(temp)
-which(rain2019$date == "4-10-2019") # find what row the day before 5-10-2019 is
-# Therefore 5-10-2019 would be row 278 (277+1)
-which(rain2019$date == "18-12-2019") # find what row the day before 5-10-2019 is
-# Therefore 5-10-2019 would be row 353 (351+2). Add two as both 5th october and 19th december are missing
-```
-
+To get more detailed information about the accuracy of our data, two function were written. The first function partially performs the test, calculating the sum of the ranks of the positive and negative differences. These two numbers tell us how often, and by how much, the generator overestimated and underestimated the rainfall. For example, a large sum of ranks of positive differences indicates that the generator frequently overshot the actual data and/or overshot by a large margin. The second function performs the actual Wilcoxon Signed Rank test, returning the p-value, a 95% confidence interval, and the two sum of ranks that were calcualted in the first function.
 ```{r}
-# We find that the days are day 278 and 353 from testSeasonalRainfall10
-simRainfall2019 <- testSeasonalRainfall10
-```
-
-```{r}
-set.seed(102343656)
-monthList <- subset(weather_data, Year == 2019) # A year that isn't a leap year to get the month list, as generation algorithm only requires months
-monthList <- monthList['Month']
-testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-simRainfall2019 <- testSeasonalRainfall10 # Have to remove day 278 and day 353 data from testSeasonalRainfall10 because 2019 data list is missing these days
-```
-
-```{r}
-wilcox <- function(seed, year, remove_days){
+wilcox <- function(seed, year){
   set.seed(seed)
-  monthList <- subset(weather_data, Year == year) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
-  monthList <- monthList['Month']
-  testSeasonalRainfall10 <- generateRainfallSeasonal(monthList)
-  if (remove_days == 1){
-    simRainfall2019 <- testSeasonalRainfall10[-c(278, 353)]
-  } else if (remove_days == 0){
-    simRainfall2019 <- testSeasonalRainfall10 # remove day 278 and day 353 data from testSeasonalRainfall10
-  }
+  rainYear <- subset(weather_data, Year == year) # a year that isn't a leap year to get the month list, as generation algorithm only requires months
+  monthList <- rainYear['Month']
+  simRainfall <- generateRainfallSeasonal(monthList)
+
   # test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
-  print(wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95))
-  WP <- wilcox.test(rain2019$Rainfall.amount..millimetres., simRainfall2019, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
+  print(wilcox.test(rainYear$Rainfall.amount..millimetres., simRainfall, paired = T, alternative = "t", conf.int = T, conf.level = 0.95))
+  WP <- wilcox.test(rainYear$Rainfall.amount..millimetres., simRainfall, paired = T, alternative = "t", conf.int = T, conf.level = 0.95)
   cat("P-value is",WP$p.value,"\n")
-  # the p-value is 0.04918,indicating that it is likely that there is a significant difference between the simulated data and the actual data. This means that one   set of data was consistently and significantly larger than the other
+
   # manual calculation of Wilcoxon signed rank values 
 
-  sumRanks <- returnRanks(simRainfall2019, rain2019$Rainfall.amount..millimetres.)
+  sumRanks <- returnRanks(simRainfall, rainYear$Rainfall.amount..millimetres.)
   cat(sumRanks[1], "is the sum of the ranks of the positive differences","\n")
   cat(sumRanks[2], "is the sum of the ranks of the negative differences","\n")
 
-  # rankPosDiff (the sum of the ranks of the differences where the simulated data is greater than the actual) is 7414. rankNegDiff (the sum of the ranks of the the differences where the actual is greater than the simulated) is 5147. rankPosDiff is quite a bit larger than rankNegDiff
+  par(mfrow = c(2,1))
+ barplot(simRainfall, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
+ barplot(rainYear$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)",  main = "Actual Rainfall")
 }
-wilcox(40565, 2019, 0)
+wilcox(40565, 2019)
 ```
+
+
+
 To confirm the results of the first Wilcoxon signed rank test, we repeat the code and test above with 3 different sets of randomised simulated rainfall.
 ```{r, echo=FALSE}
-wilcox(12345, 2011, 1)
-wilcox(347876, 2011, 1)
-wilcox(3456789, 2011, 1)
+wilcox(12345, 2019)
+wilcox(347876, 2019)
+wilcox(3456789, 2019)
 ```
 
 ```{r}
@@ -689,7 +662,8 @@ rankNegDiff
 mean(diffs)
 ```
 # Conclusion and summary of the findings:
-In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results seemingly not being an accurate prediction of 2019 (as seen in the bar plots above), the simulation does generate rainfall data that is logically consistent with the median rainfall amounts. # ADD MORE INFORMATION AND RESULTS HERE.
+
+In brief, our findings indicate that the simulated weather created by our generator is not statistically different from the actual rainfall data. More specifically, since our p-values are relatively high, this indicates that there is no statistically signficant difference between our generated results and the actual results. Despite the results not being a completely accurate prediction of 2019 (as seen in the bar plots above), the simulation both follows an accurate distribution of rainfall and has a median that is similar to the acutal rainfall. 
 
 # References:
 
