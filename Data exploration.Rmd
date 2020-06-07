@@ -577,7 +577,8 @@ returnRanks <- function(simulated, actual){
 ```
 
 
-To get more detailed information about the accuracy of our data, two function were written. The first function partially performs the test, calculating the sum of the ranks of the positive and negative differences. These two numbers tell us how often, and by how much, the generator overestimated and underestimated the rainfall. For example, a large sum of ranks of positive differences indicates that the generator frequently overshot the actual data and/or overshot by a large margin. The second function performs the actual Wilcoxon Signed Rank test, returning the p-value, a 95% confidence interval, and the two sum of ranks that were calcualted in the first function.
+To get more detailed information about the accuracy of our data, two function were written. The first function partially performs the test, calculating the sum of the ranks of the positive and negative differences. These two numbers tell us how often, and by how much, the generator overestimated and underestimated the rainfall. For example, a large sum of ranks of positive differences indicates that the generator frequently overshot the actual data and/or overshot by a large margin. The second function performs the actual Wilcoxon Signed Rank test, returning the p-value, a 95% confidence interval, and the two sum of ranks that were calculated in the first function.
+
 ```{r}
 wilcox <- function(seed, year){
   set.seed(seed)
@@ -596,18 +597,21 @@ wilcox <- function(seed, year){
   cat(sumRanks[1], "is the sum of the ranks of the positive differences","\n")
   cat(sumRanks[2], "is the sum of the ranks of the negative differences","\n")
 
-  par(mfrow = c(2,1))
- barplot(simRainfall, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
- barplot(rainYear$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)",  main = "Actual Rainfall")
 }
-wilcox(40464, 2019)
+wilcox(404567, 2019)
 ```
-To confirm the results of the first Wilcoxon signed rank test, we repeat the code and test above with 3 different sets of randomised simulated rainfall.
+
+Running the test on the 2019 rainfall and a simulated 2019 rainfall gave a p-value of 0.0402. This is less than the significance level of 0.05, and this it can be consluded that the two are different. Looking at the sum of ranks of differences, the simulation significantly overestimated, as there are far more positive differences. However, the p-value is only just under the 0.05 level of significance.
+
+To confirm the results of the first Wilcoxon Signed Rank test, we repeat the code and test above with 3 different sets of randomised simulated rainfall.
+
 ```{r, echo=FALSE}
 wilcox(12345, 2019)
 wilcox(347876, 2019)
 wilcox(3456789, 2019)
 ```
+All three of these tests returned p-values of over 0.05, indicating that the simulated data and the actual data were not significantly different. The highest p-value was 0.8821, and that same test also had the closest positive and negative sum of rank of differences, meaning that the simulation did not consistently over or under shoot, but it's days were spread equally above and below the actual data. 
+
 
 ```{r}
 # looking at the four total simulations created, there is generally no significant different between the simulated rainfall and the actual rainfall. 
@@ -618,6 +622,8 @@ sum(rain2019$Rainfall.amount..millimetres.)
 ```
 
 ```{r}
+rain2019 <- subset(weather_data, Year == 2019)
+simRainfall2019 <- generateRainfallSeasonal(rain2019)
 median(simRainfall2019)
 median(rain2019$Rainfall.amount..millimetres.)
 
@@ -625,9 +631,8 @@ median(rain2019$Rainfall.amount..millimetres.)
 # To perform the Wilcoxon Signed Rank test we remove those dates from testSeasonalRainfall10
 # 2019 is a non leap year so February will have 28 days
 #October 5th and December 19th are missing, so we remove them
-month_result <- which(rain2019$date == "4-10-2019" | rain2019$date=="18-12-2019")
-simRainfall2019 <- testSeasonalRainfall10
-# Test of testSeasonalRainfall10 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
+
+# Test of simRainfall2019 against 2019 rainfall (testSeasonalRainfall10 was simulation of 2019 rainfall)
 wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T, alternative = "t")
 
 # Since the p-value is relatively high, it can be concluded that there is no significant diference between the simulated 2019 data and the actual 2019 data. 
@@ -666,6 +671,8 @@ The following shows the results of our model using a secondary data source from 
 # Reading in the data from the csv file for the Sydney Location
 data2 <-  read.csv("IDCJAC0009_066062_1800_Data.csv")
 weather_data2 <- data2
+weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] # excluding rows with no rainfall record made
+weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) # creating a column that contains the date for easy indentification
 weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] #excluding rows with no rainfall record made
 weather_data$date2 <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], sep = "-")) #creating a column that contains the date for easy indentification
 train_data2 <- subset(weather_data2, Year >= 2010)
