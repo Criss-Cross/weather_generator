@@ -52,7 +52,7 @@ Our methodology is broken down as follows:
 3) Testing
 - Numerical comparison of rainfall levels between simulated data and actual data
 - Wilcoxon signed ranked test and comparison of P-values
-- Tested model on secondary data source and compared the respective results
+- Tested model on secondary data source and compared the respective results to confirm that it 
 
 # Code rationale 
 ```{r}
@@ -612,20 +612,24 @@ wilcox(3456789, 2019)
 ```
 All three of these tests returned p-values of over 0.05, indicating that the simulated data and the actual data were not significantly different. The highest p-value was 0.8821, and that same test also had the closest positive and negative sum of rank of differences, meaning that the simulation did not consistently over or under shoot, but it's days were spread equally above and below the actual data. 
 
+Given that three out of the four tests performed 
+
 
 ```{r}
 # looking at the four total simulations created, there is generally no significant different between the simulated rainfall and the actual rainfall. 
 # However looking at rankPosDiff and rankNegDiff calculated for each (the sum of the ranks of the positive and negative differences between the simulated and actual data respectively), the simulated rainfall was consistently larger than the actual data 
 # The reason for this is likely because 2019 had a very small amount of rainfall compared to the rest of the years.
-sum(train10_data$Rainfall.amount..millimetres.)/10 #/10 to get average of 10 years of rain data
-sum(rain2019$Rainfall.amount..millimetres.)
+
 ```
 
 ```{r}
 rain2019 <- subset(weather_data, Year == 2019)
 simRainfall2019 <- generateRainfallSeasonal(rain2019)
-median(simRainfall2019)
-median(rain2019$Rainfall.amount..millimetres.)
+cat(median(simRainfall2019), "is the simulated median \n")
+cat(median(rain2019$Rainfall.amount..millimetres.), "is the actual median \n")
+
+cat(sum(train10_data$Rainfall.amount..millimetres.)/10, "is the average total rainfall per year for 2009 to 2018 \n") #/10 to get average of 10 years of rain data
+cat(sum(rain2019$Rainfall.amount..millimetres.), "is the total rainfall of 2019 \n")
 
 # given the number of dry days, it makes sense that the median's would be very similar in the Wilcoxon Signed Rank test
 # To perform the Wilcoxon Signed Rank test we remove those dates from testSeasonalRainfall10
@@ -638,7 +642,7 @@ wilcox.test(simRainfall2019, rain2019$Rainfall.amount..millimetres., paired = T,
 # Since the p-value is relatively high, it can be concluded that there is no significant diference between the simulated 2019 data and the actual 2019 data. 
 # While the simulation may not be an accurate prediction of 2019 (as seen in the barplots), the simulation was also not logically flawed, as there is not a significant difference between the median of the simulation and the median of the actual.
 #Furthermore, a qucik comparison of the medians in the Wilcoxon Signed Rank test shows that (as expected) they are also very similar.
-cat("Median of actual and simulated rainfall respectively: ", median(rain2019$Rainfall.amount..millimetres.), median(simRainfall2019))
+cat("Median of actual and simulated rainfall respectively:", median(rain2019$Rainfall.amount..millimetres.),",", median(simRainfall2019))
 rm(simRainfall2019)
 ```
 
@@ -670,7 +674,7 @@ The following shows the results of our model using a secondary data source from 
 ```{r}
 # Reading in the data from the csv file for the Sydney Location
 data2 <-  read.csv("IDCJAC0009_066062_1800_Data.csv")
-weather_data2 <- data2
+weather_data2 <- subset(data2, Year >= 1993)
 
 weather_data2 <- weather_data2[which(is.na(weather_data2$Rainfall.amount..millimetres.) == FALSE),] #excluding rows with no rainfall record made
 weather_data2$date2 <- do.call(paste, c(weather_data2[c("Day", "Month", "Year")], sep = "-")) #creating a column that contains the date for easy indentification
