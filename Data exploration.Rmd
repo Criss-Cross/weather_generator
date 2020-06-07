@@ -695,7 +695,7 @@ testSeasonalRainfall10_2 <- generateRainfallSeasonal(monthList_2)
 ```
 
 ```{r, fig.height=9}
-#Compare generated year against 2019
+#Compare Generated year against 2019
 par(mfrow = c(2,1))
 barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
 barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2019 Rainfall")
