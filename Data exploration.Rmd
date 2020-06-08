@@ -670,7 +670,7 @@ wilcox(25644, 2011)
 wilcox(6872, 2011)
 ```
 
-Both of the trends, that the generator overstimates 2019 and underestimates 2011, are expected. The generator was trained on data from 2009 to 20018, so the simulated data should have an average close to the avergae of those 10 years. To confirm this we simulated 10 years of data, 2008-2019, 100 times, finding the average rainfall per year of each simulation, and then compared that to the actual average rainfall per year of 2008-2019. The two are more different than we would like, but the difference is still < 1%. The variation in monthly rainfall across the 10 years possibly resulted in inaccurate monthly probabilities, for transitioning between states and the rainfall distribution. On an individual basis, the simulations are usually not significantly different, so they are sufficient for rough estimation and analysis. 
+Both of the trends, that the generator overstimates 2019 and underestimates 2011, are expected. The generator was trained on data from 2009 to 20018, so the simulated data should have an average close to the avergae of those 10 years. To confirm this we simulated 10 years of data, 2008-2019, 100 times, finding the average rainfall per year of each simulation, and then compared that to the actual average rainfall per year of 2008-2019. The two are more different than we would like, but the difference is still < 1%. A reason for this is that when training the generator, extreme rainfall (>70mm) is not included in order to make the simulations more realistic. This means that the generator will underestimate years with extreme rainfall, so it is expected tha the simulated rainfall will be less than the actual to a degree. Additionally, the variation in monthly rainfall across the 10 years possibly resulted in inaccurate monthly probabilities, for transitioning between states and the rainfall distribution. On an individual basis, the simulations are usually not significantly different, so they are sufficient for rough estimation and analysis. 
 
 ```{r}
 probTransitonStatesMonthsFrame <- trainGenerator(train10_data)
@@ -689,7 +689,8 @@ cat(meanSumSim, "is the simulated average rainfall per year \n")
 cat(meanSumActual, "is the actual average rainfall per year \n")
 ```
 
-```{r}
+Below are the barplots of an aggregation of 100 simulations of 2018 and the actual 2018 rainfall. The simulated rainfall is low in the earlier months, as the 114mm of rainfall in February was not included in the training. As a result, the  of the simulated mean is almost 100mm below the actual mean.
+```{r, message = FALSE, warning=FALSE}
 rain2011 <- subset(train_data, Year == 2018)
 probTransitonStatesMonthsFrame <- trainGenerator(rain2011)
 rainfallAvgMonth <- rainMonthDataCalc(rain2011) # ensure generator is traind on train10_data
@@ -707,10 +708,10 @@ SumSim <- simTot/trials # average rainfall per year from 'trial' number of simul
 meanSumSim <- simSum/trials
 meanSumActual <- sum(rain2011$Rainfall.amount..millimetres.) # actual average rainfall per year
 cat("\n", meanSumSim, "is the simulated rainfall \n")
-cat(meanSumActual, "is the actual rainfall \n")
+cat("", meanSumActual, "is the actual rainfall \n")
 par(mfrow = c(2,1))
-barplot(SumSim)
-barplot(rain2011$Rainfall.amount..millimetres.)
+barplot(SumSim, main = "100 Aggregated simulations of 2018 rainfall(mm)", xlab = "Index", ylab = "Rainfall (mm)")
+barplot(rain2011$Rainfall.amount..millimetres., main = "Actuall 2018 rainfall(mm)", xlab = "Index", ylab = "Rainfall (mm)")
 ```
 
 ```{r}
@@ -740,7 +741,7 @@ train10_data2 <- subset(weather_data2, Year >= 2009 & Year < 2019)
 data_2019_2 <- subset(weather_data2, Year == 2019)
 
 probTransitonStatesMonthsFrame <- trainGenerator(train10_data2)
-rainfallAvgMonth <- rainMonthDataCalc(train10_data_2)# retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
+rainfallAvgMonth <- rainMonthDataCalc(train10_data2)# retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
 
 testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall2)
 plot_seasonal_data(train_data2,testSeasonalRainfall2, "(Sydney)")
