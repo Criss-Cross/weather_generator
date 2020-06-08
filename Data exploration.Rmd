@@ -543,17 +543,6 @@ plot(RainfallWeekly[c(351:700), 2], RainfallWeekly[c(351:700), 1], xlab = "week"
 
 Looking at the plot of the rainfall amount of rainfall by week, there seems to be fairly consistent periods of rainfall followed by dryness, with similar amounts of rainfall. However, looking at the plot of the difference in rainfall by week, it can be seen that the amount of rainfall in the wet periods are not consistent, with some having consistent rainfall (shown as small spikes) and others quickly changing between heavy rainfall and light rain (large spikes). Overall, the inconsistency of the amount of rainfall in wet periods, and the variation, though not large, in the time between wet and dry periods does not warrant the addition of a weekly Markov chain.
 
-```{r, fig.height= 14}
-# might remove this, already show first 700 weeks
-
-# plot second 700 weeks first against the difference in rainfall, and then the rainfall per week
-par(mfrow = c(4,1))
-plot(RainfallWeeklyDiff[c(701:1050), 2], RainfallWeeklyDiff[c(701:1050), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(701:1050), 2], RainfallWeekly[c(701:1050), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-plot(RainfallWeeklyDiff[c(1051:1414), 2], RainfallWeeklyDiff[c(1051:1414), 1], xlab = "week", ylab = "change in rainfall (mm)", cex = 2, type = "b")
-plot(RainfallWeekly[c(1051:1414), 2], RainfallWeekly[c(1051:1414), 1], xlab = "week", ylab = "rainfall (mm)", type = "l")
-```
-
 In order to quantify the accuracy of our generator, we will use statistical tests. The test would be a paired two sample test, as each day in the simulated data corresponds to a specific day in the actual day. Two candidates that meet that criteria are a paired two sample Student T test and the Wilcoxon Signed Rank test. The former is a parametric test, while the latter is non-parametric. To decide between the two, we looked at the normality of the data, as parametric tests are often more accurate than non-parametric if the data is normally distributed. 
 ```{r}
 rainSort_2019 <- data_2019$Rainfall.amount..millimetres.
