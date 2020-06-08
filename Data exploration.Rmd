@@ -638,14 +638,11 @@ A likely explanation for this is that 2019 had a below average total rainfall wh
 # looking at 2013 data (which had a larger than average amount of rain)
 wilcox(654321, 2011) # wilcoxon test on 2013
 set.seed(654321)
-
 rain2011 <- subset(weather_data, Year == 2011) # A year that isn't a leap year to get the month list, as generation algorithm only requires months
 simRainfall2011 <- generateRainfallSeasonal(rain2011)
-
 par(mfrow = c(2,1))
 barplot(simRainfall2011, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
 barplot(rain2011$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2011 Rainfall")
-
 rm(rain2011)
 rm(simRainfall2011)
 
@@ -760,7 +757,6 @@ barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfal
 barplot(data_2019_2$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "Actual 2019 Rainfall (Sydney)")
 barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall (Perth)")
 barplot(testSeasonalRainfall10_2, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall (Sydney)")
-
 ```
 # Conclusion and summary of the findings:
 
