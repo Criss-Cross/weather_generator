@@ -313,7 +313,7 @@ rainMonthDataCalc <- function(input_data){
   rainMonthData <- c()
   for (i in 1:12){
     temp <- input_data$Rainfall.amount..millimetres.[input_data$state == "wet" & input_data$Month == i & input_data$Rainfall.amount..millimetres. < 70]
-    if(length(temp) == 0){
+    if(length(temp) == 0){ # if no wet days in month, will be empty vector of numeric(0)
       temp <- c(0)
     }
     rainMonthData <- c(rainMonthData, list(temp))
@@ -631,7 +631,7 @@ An interesting observation is that all four tests returned higher positive sum r
 # looking at the four total simulations created, there is generally no significant different between the simulated rainfall and the actual rainfall. 
 # However looking at rankPosDiff and rankNegDiff calculated for each (the sum of the ranks of the positive and negative differences between the simulated and actual data respectively), the simulated rainfall was consistently larger than the actual data 
 # The reason for this is likely because 2019 had a very small amount of rainfall compared to the rest of the years.
-
+require(ggplot2)
 ggplot(train_data, aes(x = factor(Year), y = Rainfall.amount..millimetres.)) +
   geom_bar(stat = "identity") + 
   xlab("Year") + 
@@ -689,6 +689,38 @@ cat(meanSumSim, "is the simulated average rainfall per year \n")
 cat(meanSumActual, "is the actual average rainfall per year \n")
 ```
 
+```{r}
+rain2011 <- subset(train_data, Year == 2018)
+probTransitonStatesMonthsFrame <- trainGenerator(rain2011)
+rainfallAvgMonth <- rainMonthDataCalc(rain2011) # ensure generator is traind on train10_data
+
+simTot <- rep(0, length(rain2011))
+simSum <- 0
+trials <- 100
+for(i in c(1:trials)){
+  set.seed(i) 
+  simulation <- generateRainfallSeasonal(rain2011) # generate simulation same length as train10_data
+  simTot = simTot + simulation # get average rainfall per year over simulated 10 years
+  simSum = simSum + sum(simulation)
+}
+SumSim <- simTot/trials # average rainfall per year from 'trial' number of simulations
+meanSumSim <- simSum/trials
+meanSumActual <- sum(rain2011$Rainfall.amount..millimetres.) # actual average rainfall per year
+cat("\n", meanSumSim, "is the simulated rainfall \n")
+cat(meanSumActual, "is the actual rainfall \n")
+par(mfrow = c(2,1))
+barplot(SumSim)
+barplot(rain2011$Rainfall.amount..millimetres.)
+```
+
+```{r}
+month <- 8
+year <- 2018
+mean(train_data$Rainfall.amount..millimetres.[train_data$Month==month & train_data$Year == year & train_data$Rainfall.amount..millimetres. > 1])
+rainfallAvgMonth[month]
+```
+
+
 The following shows the results of our model using a secondary data source from Sydney.
 ```{r}
 # Reading in the data from the csv file for the Sydney Location
@@ -706,23 +738,17 @@ inputSeasonalRainfall2 <- dplyr::select(train_data2, 'Year', 'Month', 'Day')
 train_data2 <- subset(weather_data2, Year >= 2010)
 train10_data2 <- subset(weather_data2, Year >= 2009 & Year < 2019)
 data_2019_2 <- subset(weather_data2, Year == 2019)
-<<<<<<< HEAD
 
 probTransitonStatesMonthsFrame <- trainGenerator(train10_data2)
 rainfallAvgMonth <- rainMonthDataCalc(train10_data_2)# retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
-=======
-probTransitonStatesMonthsFrame <- probTransStatesMonth(train10_data2) # retraining seasonal generator probTransitionStatesMonthsFrame with train10_data
->>>>>>> 8a009d60546e56246c33717fb80f3df33fc96f58
+
 testSeasonalRainfall2 = generateRainfallSeasonal(inputSeasonalRainfall2)
 plot_seasonal_data(train_data2,testSeasonalRainfall2, "(Sydney)")
 ```
 
 ```{r}
-<<<<<<< HEAD
-set.seed(10546)
-=======
 set.seed(10584)
->>>>>>> 8a009d60546e56246c33717fb80f3df33fc96f58
+
 monthList_2 <- data_2019_2 # a year that isn't a leap year to get the month list, as generation algorithm only requires months
 monthList_2 <- monthList_2['Month']
 testSeasonalRainfall10_2 <- generateRainfallSeasonal(monthList_2)
@@ -735,18 +761,18 @@ cat("P-value is",WP$p.value,"\n")
 
 ```{r}
 #Compare Generated year against 2019
-<<<<<<< HEAD
+
 par(mfrow = c(2,1))
 barplot(testSeasonalRainfall10_2, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall")
 barplot(data_2019_2$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "2019 Rainfall")
 # Conclusion and summary of the findings:
-=======
+
 par(mfrow = c(2,2))
 barplot(data_2019$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "Actual 2019 Rainfall (Perth)")
 barplot(data_2019_2$Rainfall.amount..millimetres., xlab = "Index", ylab = "Rainfall (mm)", main = "Actual 2019 Rainfall (Sydney)")
 barplot(testSeasonalRainfall10, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall (Perth)")
 barplot(testSeasonalRainfall10_2, xlab = "Index", ylab = "Rainfall (mm)", main = "Simulated Rainfall (Sydney)")
->>>>>>> 8a009d60546e56246c33717fb80f3df33fc96f58
+
 ```
 # Conclusion and summary of the findings:
 
