@@ -67,7 +67,7 @@ weather_data$date <- do.call(paste, c(weather_data[c("Day", "Month", "Year")], s
 ```
 In order to generate a Markov chain, we must first calculate the probability of the transition states. Since our data contains the rainfall amounts for each day, we need to convert these into a recording of whether the day was wet or dry, which will refer to as the days 'states', and the state transition, for example, dry state to wet state, in which it did not rain the previous day, and rained on that day. The first thing we did is create a function to classify a day's state as dry if it had <1mm of rainfall, and wet if it has >1mm of rainfall, as per the methodology. This allows us to create a new column in the data for the state depending on the rainfall column. We created a new column in the weather data for the state.
 ```{r}
-# function to categorise day as either 'wet' or 'dry' for the Markov Chain functions
+# function to categorise day as either 'wet' or 'dry' for the Markov chain functions
 state <- function(x){
   stateList <- c()
   for(ii in 1:length(x)){
